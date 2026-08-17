@@ -497,7 +497,8 @@ done, this list *is* the backlog.
       remembering it.
 - [ ] **`httpx` and `httpx2` are both installed** once the `mcp` extra is in — the SDK
       depends on the second, nothing else does. Not a fault, but worth knowing before
-      somebody "consolidates" them.
+      somebody "consolidates" them. Left unchecked deliberately: there is nothing to fix
+      on this side of the dependency — the MCP SDK owns that choice, not this project.
 
 - [x] ~~Version control~~ — the project is a git repo on `main`, tracking `origin/main`.
 - [x] ~~The build step is unguarded~~ — CI runs `npm run build` (`tsc -b && vite build`) on
@@ -505,16 +506,32 @@ done, this list *is* the backlog.
       `docker compose build`.
 - [x] ~~`Anthropic(...)` built at import time~~ — fixed in step 3b: the client is now lazy and
       cached in `app/agents/graph.py`, like the Bedrock and STAC ones
-- [ ] **Embedding dimension duplicated in three places**: `settings.embedding_dim`,
-      `Vector(...)` in `app/db/models.py`, `vector(1024)` in `scripts/init_db.sql`.
-      A mismatch only shows up at insert time.
-- [ ] **No migrations**: `init_db.sql` runs only when the data volume is first created, and the
-      SQLAlchemy models mirror it by hand
+- [x] ~~Embedding dimension duplicated in three places~~ — `scripts/init_db.sql` is deleted;
+      `alembic/versions/d64352cad014_initial_schema.py` reads `settings.embedding_dim`
+      instead of hardcoding `1024`, so `Vector(...)` in `app/db/models.py` and the
+      migration now share one source. Changing the model still needs a follow-up
+      migration (`ALTER COLUMN ... TYPE vector(new_dim)`) or a dropped volume — the
+      duplication that caused a silent mismatch at insert time is what's gone, not the
+      need for a migration step when the dimension actually changes.
+- [x] ~~No migrations~~ — `alembic/` replaces `scripts/init_db.sql`. The one revision so
+      far is hand-written as idempotent raw SQL (`CREATE ... IF NOT EXISTS`), verified
+      against both a brand new `pgvector/pgvector:pg16` database and one the old
+      `init_db.sql` mount had already initialized — same resulting schema either way, so
+      every existing volume upgrades in place with no manual step. `scripts/docker-entrypoint.sh`
+      runs `alembic upgrade head` before uvicorn starts, so the image applies its own
+      migrations; the `docker compose up -d db` + local-uvicorn dev path is the one
+      case that needs `uv run alembic upgrade head` run by hand first.
 - [x] ~~No CI~~ — `.github/workflows/ci.yml`: a `python` job (ruff, then pytest without and
       with the `mcp` extra) and a `frontend` job (`npm run build`, `npm test`), on push and
       PR to `main`. The eval harness and the live checks in `VERIFY.md` are deliberately
       not in it — both need live services and spend money, which is not what a run on
       every push should do.
-- [ ] **No `[tool.ruff]` section** in `pyproject.toml`: line length and rule set are implicit
-- [ ] **`embed_texts` is sequential** — one InvokeModel call per text. Fine at this corpus size;
-      the docstring already flags `ThreadPoolExecutor` as the way out.
+- [x] ~~No `[tool.ruff]` section~~ — `target-version = "py311"` and `line-length = 120` are
+      now explicit in `pyproject.toml`, chosen to hold existing lines (some already ran
+      past 100) rather than to invite reformatting them. The rule set itself was already
+      ruff's default and stays that way — this made the implicit explicit, not different.
+- [x] ~~`embed_texts` is sequential~~ — now fans out across a `ThreadPoolExecutor`
+      (`app/rag/embeddings.py`), the way the old docstring already flagged. `pool.map`
+      keeps the result order matching input order regardless of which call finishes
+      first; boto3's low-level clients are documented thread-safe, so the single cached
+      client needs no lock across the pool.
