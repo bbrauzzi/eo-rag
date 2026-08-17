@@ -6,6 +6,7 @@ here, so model and dimension stay consistent between indexing and querying.
 """
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 import boto3
 from botocore.config import Config
@@ -14,6 +15,10 @@ from botocore.exceptions import ClientError
 from app.config import settings
 
 _cached_client = None
+
+# boto3's low-level clients (unlike its Resources) are documented thread-safe, so
+# fanning embed_text out across a pool is safe with the single cached client above.
+_MAX_WORKERS = 8
 
 
 def _client():
@@ -57,8 +62,13 @@ def embed_text(text: str) -> list[float]:
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
     """
-    Embed several texts, one at a time: Titan's InvokeModel accepts a single
-    inputText per request, there is no real batch API.
-    If the corpus grows, the next step is to parallelize with ThreadPoolExecutor.
+    Embed several texts. Titan's InvokeModel accepts a single inputText per request -
+    there is no batch API - so this fans the calls out across a thread pool instead of
+    sending them one at a time: the round trip to Bedrock is what a text spends its
+    time on, not local CPU. `pool.map` preserves input order in the result regardless
+    of which call finishes first.
     """
-    return [embed_text(t) for t in texts]
+    if not texts:
+        return []
+    with ThreadPoolExecutor(max_workers=min(len(texts), _MAX_WORKERS)) as pool:
+        return list(pool.map(embed_text, texts))
