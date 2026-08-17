@@ -1,0 +1,60 @@
+[project]
+name = "eo-rag"
+version = "0.1.0"
+description = "Conversational agent over EO/STAC documentation with RAG and real STAC tool calling"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.2",
+    "pgvector>=0.3",
+    "pydantic-settings>=2.4",
+    "anthropic>=0.40",
+    "langgraph>=0.2",
+    "langchain-text-splitters>=0.3",
+    "boto3>=1.35",
+    "httpx>=0.27",
+    "rasterio>=1.3",
+    # Pulled in by rasterio anyway, declared because compute_index imports it directly.
+    "numpy>=1.26",
+    # Same reason: langchain-text-splitters brings it, and app/evals/cases.py reads the
+    # labelled set with it.
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.6",
+]
+# Optional on purpose: langfuse is an OpenTelemetry distribution and pulls a dependency
+# tree larger than everything else here combined, while `app/obs/tracing.py` is fully
+# useful without it - the structured log is the floor, Langfuse is the dashboard.
+# `uv sync --extra observability`, or leave it out and read the logs.
+observability = [
+    "langfuse>=3",
+]
+# Also optional, and for the same kind of reason: the MCP SDK brings a second complete HTTP
+# stack (`httpx2`, alongside the `httpx` this project already uses), OpenTelemetry, and
+# `pyjwt[crypto]`. The offline suite is run dozens of times a day and needs none of it, and
+# `app/mcp/tools.py` is deliberately SDK-free so most of the MCP tests run without this.
+# `uv sync --extra mcp`. The Docker image installs it, because the deployed API is what
+# serves /mcp.
+mcp = [
+    "mcp[cli]>=2.0",
+]
+
+# The project's first console entry point, and it exists for one reason: an MCP client's
+# configuration is a `command` plus `args`, and `eo-rag-mcp` is far more robust there than
+# a `python -m` invocation whose meaning depends on the working directory.
+[project.scripts]
+eo-rag-mcp = "app.mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

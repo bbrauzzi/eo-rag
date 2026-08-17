@@ -1,0 +1,36 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.pytest_cache/
+*.egg-info/
+.DS_Store
+.ruff_cache/
+
+# The frontend is built in the Docker image's node stage, never committed.
+frontend/node_modules/
+frontend/dist/
+
+# Eval run history: one JSON file per execution, useful locally and noise in a diff.
+# `evals/baseline.json` is deliberately NOT ignored - it is the accepted standard every
+# later run is judged against, so it has to be reviewable and travel with the code.
+evals/runs/
+
+# IDE and editor state, per machine.
+.idea/
+
+# Live-verification artifacts: browser screenshots and console logs from the Playwright
+# MCP runs in VERIFY.md, plus one stray popover capture. Megabytes of PNG that no
+# document references and that a rerun regenerates.
+.playwright-mcp/
+assets-popover.png
+
+# Incremental TypeScript build state.
+frontend/tsconfig.tsbuildinfo
+
+# The Claude Code config travels with the project: the skill is project knowledge and the
+# permission allowlist is what makes a clone able to run the live checks in VERIFY.md
+# without re-approving every command. The negation is load-bearing - a global excludes
+# file may well ignore `settings.local.json`, and an in-repo rule is what overrides it.
+!.claude/settings.local.json

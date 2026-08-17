@@ -1,0 +1,17 @@
+# Without this the node stage's `COPY frontend/ ./` drags node_modules and a stale dist
+# into the build context - hundreds of megabytes, and a dist that would shadow the one
+# `npm run build` is about to produce.
+frontend/node_modules/
+frontend/dist/
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.idea/
+.git/
+
+data/
+tests/
+.env

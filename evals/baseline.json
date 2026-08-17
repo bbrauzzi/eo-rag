@@ -1,0 +1,437 @@
+{
+  "created_at": "2026-08-08T22:11:24+00:00",
+  "model": "claude-sonnet-4-6",
+  "embedding_model": "amazon.titan-embed-text-v2:0",
+  "top_k": 5,
+  "retrieval_only": false,
+  "cases": [
+    {
+      "id": "item-required-fields",
+      "passed": true,
+      "graded": [
+        "retrieval",
+        "answer"
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "mrr": 0.5,
+      "ranks": [
+        2
+      ],
+      "retrieved_sections": [
+        "Item Overview",
+        "Item fields",
+        "Overview",
+        "Item Overview",
+        "STAC Overview"
+      ],
+      "answered": true,
+      "tools": [
+        "rag_lookup",
+        "rag_lookup",
+        "rag_lookup"
+      ],
+      "sources": [
+        "stac-spec-core"
+      ],
+      "steps": 4,
+      "cost_usd": 0.04956,
+      "ms": 19303,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "Based on the STAC specification documentation, here are the **required fields of a STAC Item**:\n\nA STAC Item is a **GeoJSON Feature** with additional STAC-specific foreign members. Its required fields come from two sources:\n\n---\n\n### 🔷 Fields Inherited from GeoJSON\n| Field Name   | Type | Description |\n|---|---|---|\n| `type` | string | Must be `\"Feature\"` (as required by GeoJSON). |\n| `geometry` | GeoJSON Geometry \\| null | The spatial footprint of the Item (e.g., a Polygon). Can be `null` if the item has no geometry. |\n| `bbox` | array of numbers | Bounding box of the geometry: `[west, south, east, north]`. Required when `geometry` is not `null`. |\n| `properties` | object | A dictionary of metadata about the Item. Must contain at least the **`datetime`** field (a UTC datetime string, or `null` if `start_datetime`/`end_datetime` are used instead). |\n\n---\n\n### 🔷 STAC-Specific Required Fields\n| Field Name        | Type | Description |\n|---|---|---|\n| `stac_version`    | string | The STAC specification version the Item follows (e.g., `\"1.0.0\"`). |\n| `id`              | string | A unique identifier for the Item within the Catalog/Collection. |\n| `links`           | array of Link objects | A list of references to related resources (e.g., to its parent Catalog or Collection, and a `self` link). |\n| `assets`          | Map\\<string, Asset\\> | A dictionary of downloadable or streamable assets associated with the Item (e.g., imagery files). Each key is a unique asset identifier. |\n\n---\n\n### 🔷 Optional but Notable\n- **`stac_extensions`** – an array of URIs identifying any STAC extensions used; not strictly required but strongly recommended when extensions are applied.\n- **`collection`**– the ID of the Collection this Item belongs to; recommended when the Item is part of a Collection.\n\n---\n\n### Summary\nIn short, a valid STAC Item **must** have:\n`type`, `stac_version`, `id`, `geometry`, `bbox`, `properties` (with `datetime`), `links`, and `assets`.\n\nThese fields collectively ensure an Item is both valid GeoJSON and a self-describing, discoverable spatiotemporal asset record.",
+      "error": null
+    },
+    {
+      "id": "catalog-vs-collection",
+      "passed": true,
+      "graded": [
+        "retrieval",
+        "answer"
+      ],
+      "recall_at_k": 0.5,
+      "precision_at_k": 0.2,
+      "mrr": 1.0,
+      "ranks": [
+        1
+      ],
+      "retrieved_sections": [
+        "Collection Overview",
+        "Catalog Overview",
+        "Overview",
+        "STAC Overview",
+        "STAC Catalog Specification <!-- omit in toc -->"
+      ],
+      "answered": true,
+      "tools": [
+        "rag_lookup",
+        "rag_lookup"
+      ],
+      "sources": [
+        "stac-spec-core"
+      ],
+      "steps": 3,
+      "cost_usd": 0.03588,
+      "ms": 16583,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "Great — here is a clear breakdown of the differences between a **STAC Catalog** and a **STAC Collection**, grounded in the specification:\n\n---\n\n## STAC Catalog vs. STAC Collection\n\n### 🗂️ STAC Catalog — The Structural Backbone\nA **Catalog** is the fundamental building block for organizing and linking STAC content. Its purpose is **discovery**: it provides a simple, recursive linking structure that groups Items and other Catalogs together so they can be browsed by humans or crawled by machines.\n\n**Required fields:**\n| Field | Description |\n|---|---|\n| `type` | Must be `\"Catalog\"` |\n| `id` | Unique identifier |\n| `description` | Human-readable description |\n| `stac_version` | STAC version implemented |\n| `links` | Links to child Catalogs, Collections, or Items |\n\nA Catalog makes **no formal distinction** between a root and child catalog — it's purely about structure and navigation.\n\n---\n\n### 📦 STAC Collection — A Catalog with Richer Metadata\nA **Collection** is a **superset of a Catalog**. It includes all four required Catalog fields and adds extra fields to describe the *dataset* as a whole. Because of this, **every valid Collection is also a valid Catalog**, but not vice versa.\n\n**Additional required fields (beyond Catalog):**\n| Field | Description |\n|---|---|\n| `type` | Must be `\"Collection\"` (not `\"Catalog\"`) |\n| `license` | Data license (e.g., `\"proprietary\"`, `\"CC-BY-4.0\"`) |\n| `extent` | Spatial and temporal extent of the contained Items |\n\nCollections also typically carry many **optional but common fields** such as `title`, `providers`, `summaries`, `assets`, and links to fuller external metadata (e.g., ISO 19115).\n\n---\n\n### Key Differences at a Glance\n\n| Feature | Catalog | Collection |\n|---|---|---|\n| Structural linking | ✅ Yes | ✅ Yes (inherits all Catalog fields) |\n| `license` field | ❌ No | ✅ Required |\n| `extent` field | ❌ No | ✅ Required |\n| `type` value | `\"Catalog\"` | `\"Collection\"` |\n| Describes a dataset | ❌ Minimal | ✅ Yes, with rich metadata |\n| Is also a valid Catalog? | ✅ Yes | ✅ Yes |\n\n---\n\n### In Summary\nThink of a **Catalog** as a *folder* — it organizes and links things together. A **Collection** is a *labelled, described folder* — it does everything a Catalog does, but also carries meaningful metadata (spatial/temporal extent, license, etc.) to describe the group of Items it contains as a coherent dataset.",
+      "error": null
+    },
+    {
+      "id": "item-media-type",
+      "passed": true,
+      "graded": [
+        "retrieval",
+        "answer"
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "mrr": 1.0,
+      "ranks": [
+        1
+      ],
+      "retrieved_sections": [
+        "Media Type for STAC Item",
+        "Media Type for STAC Collections",
+        "Media Type for STAC Catalogs",
+        "Item Overview",
+        "Item fields"
+      ],
+      "answered": true,
+      "tools": [
+        "rag_lookup"
+      ],
+      "sources": [
+        "stac-spec-core"
+      ],
+      "steps": 2,
+      "cost_usd": 0.016911000000000002,
+      "ms": 8584,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "According to the STAC specification, a **STAC Item** should use the following media type:\n\n> ### `application/geo+json`\n\nThis is because a STAC Item is a **GeoJSON file** (conforming to [RFC 7946](https://tools.ietf.org/html/rfc7946)), and the appropriate media type for GeoJSON is `application/geo+json`, as defined in [RFC 7946 §12](https://tools.ietf.org/html/rfc7946#section-12).\n\nFor reference, here's how that compares to the other core STAC object types:\n\n| STAC Object | Media Type |\n|---|---|\n| **Item** | `application/geo+json` |\n| **Collection** | `application/json` |\n| **Catalog** | `application/json` |\n\nItems get the more specific `application/geo+json` type because they are GeoJSON Features with a geometry, while Catalogs and Collections are plain JSON documents.",
+      "error": null
+    },
+    {
+      "id": "standalone-collection",
+      "passed": true,
+      "graded": [
+        "retrieval",
+        "answer"
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "mrr": 1.0,
+      "ranks": [
+        1
+      ],
+      "retrieved_sections": [
+        "Standalone Collections",
+        "Collection Overview",
+        "Catalogs vs Collections",
+        "Collection Overview",
+        "Collection fields"
+      ],
+      "answered": true,
+      "tools": [
+        "rag_lookup"
+      ],
+      "sources": [
+        "stac-spec-core"
+      ],
+      "steps": 2,
+      "cost_usd": 0.01737,
+      "ms": 9446,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "## Standalone Collection\n\nA **standalone Collection** is a STAC Collection that **does not link to any Items**.\n\nHere are the key points about it, drawn directly from the STAC specification:\n\n- **Definition:** It is simply a STAC Collection with no child Item links — it describes a dataset at a high level without pointing to individual spatiotemporal assets.\n\n- **Extended Metadata via Summaries:** Since a standalone Collection has no Items to carry metadata fields, it is permitted to **reuse Item-level extension fields inside the `summaries` field** of the Collection to provide richer description. For example:\n  - Fields like `platform` or `proj:code` make good candidates, as they are often the same for the entire Collection.\n  - Fields like `eo:cloud_cover` are less suitable, since they typically vary heavily across scenes.\n\n- **Provider Discretion:** The data provider is free to decide which Item-level fields are meaningful to include in `summaries` for a standalone Collection.\n\nIn essence, a standalone Collection acts as a self-contained metadata record for a dataset — useful when you want to describe a collection of data without (yet) exposing or linking individual scenes/assets.",
+      "error": null
+    },
+    {
+      "id": "collection-extent",
+      "passed": true,
+      "graded": [
+        "retrieval",
+        "answer"
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "mrr": 0.2,
+      "ranks": [
+        5
+      ],
+      "retrieved_sections": [
+        "Collection Overview",
+        "Overview",
+        "Extensions",
+        "STAC Overview",
+        "Collection fields"
+      ],
+      "answered": true,
+      "tools": [
+        "rag_lookup",
+        "rag_lookup",
+        "rag_lookup"
+      ],
+      "sources": [
+        "stac-spec-core"
+      ],
+      "steps": 4,
+      "cost_usd": 0.046695,
+      "ms": 22902,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "Here is a full breakdown of the `extent` field in a STAC Collection, based on the specification documentation:\n\n---\n\n## The `extent` Field in a STAC Collection\n\nThe `extent` field (also referred to as the **Extent Object**) describes the **spatio-temporal extents** of a Collection — i.e., *where* and *when* the data it contains was acquired. Both sub-fields are **required**.\n\nIt is composed of two required child objects:\n\n---\n\n### 1. `spatial` — Spatial Extent Object\n\n- Contains a **`bbox`** field: an array of bounding boxes, each expressed as an array of numbers in **WGS 84 longitude/latitude**.\n- Bounding boxes can be **2D** (`[west, south, east, north]`) or **3D** (adding min/max elevation in meters).\n- The **first bounding box** always represents the **overall spatial extent** of the collection.\n- Additional bounding boxes can be provided to describe more precise sub-regions or clusters of data.\n\n> Example (whole Earth): `[[-180.0, -90.0, 180.0, 90.0]]`\n> Example (with elevation): `[[-180.0, -90.0, -100.0, 180.0, 90.0, 150.0]]`\n\n---\n\n### 2. `temporal` — Temporal Extent Object\n\n- Contains an **`interval`** field: an array of date/time intervals, where each interval is a two-element array of timestamps (start and end).\n- Timestamps follow the RFC 3339 format.\n- Either the start or end can be **`null`** to represent an open-ended interval (e.g., ongoing collections have a `null` end time).\n\n---\n\n### Summary\n\n| Element    | Type                     | Required | Description                                              |\n|------------|--------------------------|----------|----------------------------------------------------------|\n| `spatial`  | Spatial Extent Object    | ✅ Yes   | Bounding box(es) covering the collection's spatial reach |\n| `temporal` | Temporal Extent Object   | ✅ Yes   | Time interval(s) covering the collection's temporal reach|\n\nIn short, the `extent` field gives users a quick, high-level understanding of the geographic area and time period that a Collection covers, without having to inspect individual Items.",
+      "error": null
+    },
+    {
+      "id": "catalog-required-fields",
+      "passed": true,
+      "graded": [
+        "retrieval",
+        "answer"
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "mrr": 1.0,
+      "ranks": [
+        1
+      ],
+      "retrieved_sections": [
+        "Catalog fields",
+        "Collection Overview",
+        "STAC Catalog Specification <!-- omit in toc -->",
+        "STAC Overview",
+        "STAC Catalog Specification <!-- omit in toc -->"
+      ],
+      "answered": true,
+      "tools": [
+        "rag_lookup"
+      ],
+      "sources": [
+        "stac-spec-core"
+      ],
+      "steps": 2,
+      "cost_usd": 0.018111,
+      "ms": 7536,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "Based on the STAC specification documentation, a valid STAC Catalog requires the following **required fields**:\n\n| Field | Type | Description |\n|---|---|---|\n| `type` | string | Must be set to `\"Catalog\"` (to identify the object type) |\n| `stac_version` | string | The version of the STAC specification that the Catalog implements (e.g., `\"1.0.0\"`) |\n| `id` | string | A unique identifier for the Catalog |\n| `description` | string | A human-readable description of the Catalog |\n| `links` | array | A list of references to other documents/resources (used for browsing and crawling) |\n\n> *Any JSON object that contains all the required fields is a valid STAC Catalog object.*\n\nA few additional notes:\n- **`stac_extensions`** (a list of extension identifiers) is optional but commonly included.\n- A **STAC Collection** is also a valid Catalog — it contains all four core Catalog fields (`id`, `description`, `stac_version`, and `links`) and adds a few more required fields (`license` and `extent`).\n- The required fields are intentionally minimal to keep the spec flexible and easy to implement.",
+      "error": null
+    },
+    {
+      "id": "item-assets",
+      "passed": true,
+      "graded": [
+        "retrieval",
+        "answer"
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "mrr": 0.5,
+      "ranks": [
+        2
+      ],
+      "retrieved_sections": [
+        "Item Overview",
+        "Item fields",
+        "Item Overview",
+        "Overview",
+        "Collection fields"
+      ],
+      "answered": true,
+      "tools": [
+        "rag_lookup",
+        "rag_lookup",
+        "rag_lookup",
+        "rag_lookup",
+        "rag_lookup"
+      ],
+      "sources": [
+        "stac-spec-core"
+      ],
+      "steps": 6,
+      "cost_usd": 0.085872,
+      "ms": 23760,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "Based on the official STAC specification documentation, here is a thorough explanation of the `assets` field in a STAC Item:\n\n---\n\n## The `assets` Field in a STAC Item\n\n### What it is\nThe `assets` property is a **dictionary (map) of Asset Objects**, each identified by a **unique string key** (e.g., `\"B02\"`, `\"thumbnail\"`, `\"metadata\"`). Every asset refers to data associated with the Item that can be **downloaded or streamed**.\n\n---\n\n### What Each Asset Object Contains\n\nEach Asset Object in the dictionary is expected to include the following fields:\n\n| Field | Required? | Description |\n|-------|-----------|-------------|\n| `href` | **Required** | The URI/URL to the actual file (direct download or streaming link) |\n| `type` | Recommended | The media type (MIME type) of the file (e.g., `image/tiff`, `application/json`) |\n| `title` | Recommended | A human-readable name for the asset |\n| `description` | Optional | A longer description of what the asset contains |\n| `roles` | Recommended | A list of semantic roles describing the asset's purpose (see below) |\n\n---\n\n### What Should Be Included\n\nAssets in a STAC Item should cover:\n- The **main data file(s)** (e.g., imagery bands)\n- Any **\"sidecar\" files** that help a client interpret the data, such as:\n  - Extended metadata (XML, JSON, etc.)\n  - Unusable data masks\n  - Satellite ephemeris data\n\nFor datasets like Landsat that span multiple files, **all files should be linked**.\n\n---\n\n### Recommended Roles\n\nThe spec strongly recommends including at least:\n- A **thumbnail** asset (with `\"roles\": [\"thumbnail\"]`) for quick visual preview\n- One or more **data** assets (with `\"roles\": [\"data\"]`) for the actual science data\n\n---\n\n### Example (conceptual)\n```json\n\"assets\": {\n  \"thumbnail\": {\n    \"href\": \"https://example.com/scene_thumb.jpg\",\n    \"type\": \"image/jpeg\",\n    \"title\": \"Preview Image\",\n    \"roles\": [\"thumbnail\"]\n  },\n  \"B04\": {\n    \"href\": \"https://example.com/scene_B04.tif\",\n    \"type\": \"image/tiff; application=geotiff\",\n    \"title\": \"Red Band\",\n    \"roles\": [\"data\"]\n  },\n  \"metadata\": {\n    \"href\": \"https://example.com/scene_metadata.xml\",\n    \"type\": \"application/xml\",\n    \"title\": \"Scene Metadata\",\n    \"roles\": [\"metadata\"]\n  }\n}\n```\n\n---\n\n**In summary**, the `assets` field is the heart of a STAC Item — it is the dictionary that maps human-friendly keys to the actual downloadable or streamable files, along with descriptive metadata to help clients understand and use those files. *(Source: stac-spec-core — Item fields, Assets section)*",
+      "error": null
+    },
+    {
+      "id": "extensions",
+      "passed": true,
+      "graded": [
+        "retrieval",
+        "answer"
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.4,
+      "mrr": 1.0,
+      "ranks": [
+        1,
+        2
+      ],
+      "retrieved_sections": [
+        "Extensions",
+        "Extensions",
+        "Catalog fields",
+        "Item fields",
+        "Collection fields"
+      ],
+      "answered": true,
+      "tools": [
+        "rag_lookup",
+        "rag_lookup",
+        "rag_lookup"
+      ],
+      "sources": [
+        "stac-spec-core"
+      ],
+      "steps": 4,
+      "cost_usd": 0.045765,
+      "ms": 24348,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "Here is a comprehensive explanation of how STAC extensions work, grounded in the specification documentation:\n\n---\n\n## How STAC Extensions Work\n\n### 1. Purpose\nSTAC's core specification intentionally covers only the most universal metadata fields. **Extensions** are the mechanism for adding domain-specific or use-case-specific fields and behaviours on top of that core — for example, fields describing satellite view angles, EO band information, or data processing provenance.\n\n---\n\n### 2. Scope\nEach extension declares which STAC objects it applies to. An extension may extend:\n- **Items** (the most common)\n- **Collections**\n- **Catalogs**\n- Any combination of the above\n\nAn object must **only** declare extensions that directly apply to itself. For example, a Catalog must not list extensions that are only used in its child Items or Collections.\n\n---\n\n### 3. Declaration via `stac_extensions`\nEvery STAC object (Item, Collection, Catalog) has a `stac_extensions` field — a **list of URLs pointing to JSON Schema files** for each extension the object implements. For example:\n\n```json\n{\n  \"stac_version\": \"1.0.0\",\n  \"stac_extensions\": [\n    \"https://stac-extensions.github.io/eo/v1.1.0/schema.json\",\n    \"https://stac-extensions.github.io/view/v1.0.0/schema.json\"\n  ],\n  ...\n}\n```\n\nThese URLs serve two purposes:\n- **Identification**: they uniquely identify which extension is being used (and at which version).\n- **Validation**: the URLs point to JSON Schema files that can be used by validation tools to check the object's compliance with the extension.\n\n---\n\n### 4. Field Naming Conventions (Prefixes)\nExtensions add new fields, and to avoid naming conflicts they follow a **prefix convention**. Related fields share a common prefix (a short namespace), separated from the field name by a colon. For example:\n- `view:azimuth`, `view:off_nadir` — from the View Geometry extension\n- `eo:bands`, `eo:cloud_cover` — from the EO (Electro-Optical) extension\n\nThis keeps fields organised and avoids collisions between different extensions or with the core spec.\n\n---\n\n### 5. JSON Schema & Validation\nThe core STAC specification itself is described with **JSON Schema**, and extensions follow the same pattern. Each extension ships its own JSON Schema file (hosted at the URL listed in `stac_extensions`). Validation tools can fetch those schemas and verify that an Item, Collection, or Catalog correctly implements the extension.\n\n---\n\n### 6. Custom & Community Extensions\n- **Community extensions** are maintained at [stac-extensions.github.io](https://stac-extensions.github.io), which serves as the central registry.\n- **Custom extensions** are also permitted — any implementer can define their own fields. The recommendation is to still use the prefix convention and provide a JSON Schema for interoperability.\n\n---\n\n### Summary Table\n\n| Aspect | Details |\n|---|---|\n| **Where declared** | `stac_extensions` field (list of schema URLs) |\n| **Applies to** | Items, Collections, and/or Catalogs (per extension's scope) |\n| **Field convention** | `prefix:fieldname` (e.g., `eo:bands`) |\n| **Validation** | Via JSON Schema files pointed to by the extension URLs |\n| **Registry** | https://stac-extensions.github.io |\n\nExtensions make STAC highly flexible while keeping the core simple and universal. The URL-as-identifier approach means extensions are self-describing and version-pinned, making interoperability straightforward.",
+      "error": null
+    },
+    {
+      "id": "spatiotemporal-asset",
+      "passed": true,
+      "graded": [
+        "retrieval",
+        "answer"
+      ],
+      "recall_at_k": 1.0,
+      "precision_at_k": 0.4,
+      "mrr": 1.0,
+      "ranks": [
+        1,
+        3
+      ],
+      "retrieved_sections": [
+        "Item Overview",
+        "STAC Overview",
+        "Item Overview",
+        "Overview",
+        "Item fields"
+      ],
+      "answered": true,
+      "tools": [
+        "rag_lookup"
+      ],
+      "sources": [
+        "stac-spec-core"
+      ],
+      "steps": 2,
+      "cost_usd": 0.020742,
+      "ms": 12538,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "## What is a SpatioTemporal Asset in STAC?\n\nAccording to the official STAC specification, a **SpatioTemporal Asset** is defined as:\n\n> *\"Any file that represents information about the Earth captured in a certain space and time.\"*\n\n### Key Characteristics\n\n- It is **spatially bounded** (tied to a specific geographic location) and **temporally bounded** (captured at a specific time or time range).\n- It is the **actual data file** being referenced — not the GeoJSON metadata itself. The GeoJSON (a STAC Item) serves as an **index** pointing *to* the asset.\n\n### Examples of SpatioTemporal Assets\n\n| Type | Examples |\n|---|---|\n| **Imagery** | Satellite, aerial, drone imagery |\n| **SAR** | Synthetic Aperture Radar data |\n| **Point Clouds** | LiDAR, Structure from Motion (SfM) |\n| **Data Cubes** | Multi-dimensional analysis-ready datasets |\n| **Full Motion Video** | Time-series video captures of Earth |\n| **Derived Data** | Products derived from any of the above |\n\n### What It Is NOT\n\nTraditional **vector data layers** (e.g., shapefiles, GeoPackages) are **not recommended** to be represented as SpatioTemporal Assets, as they don't conceptually fit the model.\n\n### How It Fits in STAC\n\nA STAC **Item** is the core object that *describes* a SpatioTemporal Asset. It is a GeoJSON Feature that includes:\n- The **geometry** (location on Earth)\n- The **time** the asset represents\n- **Links to the actual asset files** (for direct download or streaming)\n- A **thumbnail** for quick browsing\n\nIn short, the asset is the *data*, and the STAC Item is the *metadata record* that makes that data discoverable and accessible.",
+      "error": null
+    },
+    {
+      "id": "catalog-search-rome",
+      "passed": true,
+      "graded": [
+        "answer"
+      ],
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ranks": [],
+      "retrieved_sections": [],
+      "answered": true,
+      "tools": [
+        "stac_search"
+      ],
+      "sources": [
+        "https://earth-search.aws.element84.com/v1"
+      ],
+      "steps": 2,
+      "cost_usd": 0.050028,
+      "ms": 19582,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "Here is a full summary of the **18 Sentinel-2 L2A scenes** covering Rome in January 2024. They come from three overlapping tiles — **33TTG**, **32TQM**, and **33TUG** — acquired every ~5 days by alternating Sentinel-2A and Sentinel-2B:\n\n---\n\n### 📅 30 January 2024 *(best day — very low cloud cover)*\n| Scene ID | Platform | Cloud Cover |\n|---|---|---|\n| S2B_33TTG_20240130_0_L2A | Sentinel-2B | **1.6 %** ✅ |\n| S2B_32TQM_20240130_0_L2A | Sentinel-2B | **1.5 %** ✅ |\n| S2B_33TUG_20240130_0_L2A | Sentinel-2B | 10.6 % |\n\n### 📅 25 January 2024\n| Scene ID | Platform | Cloud Cover |\n|---|---|---|\n| S2A_33TTG_20240125_0_L2A | Sentinel-2A | 36.9 % |\n| S2A_32TQM_20240125_0_L2A | Sentinel-2A | 37.8 % |\n| S2A_33TUG_20240125_0_L2A | Sentinel-2A | 27.1 % |\n\n### 📅 20 January 2024\n| Scene ID | Platform | Cloud Cover |\n|---|---|---|\n| S2B_33TTG_20240120_0_L2A | Sentinel-2B | 22.8 % |\n| S2B_32TQM_20240120_0_L2A | Sentinel-2B | 24.1 % |\n| S2B_33TUG_20240120_0_L2A | Sentinel-2B | 76.2 % |\n\n### 📅 15 January 2024\n| Scene ID | Platform | Cloud Cover |\n|---|---|---|\n| S2A_33TTG_20240115_0_L2A | Sentinel-2A | 61.8 % |\n| S2A_32TQM_20240115_0_L2A | Sentinel-2A | 63.4 % |\n| S2A_33TUG_20240115_0_L2A | Sentinel-2A | 98.3 % |\n\n### 📅 10 January 2024\n| Scene ID | Platform | Cloud Cover |\n|---|---|---|\n| S2B_33TTG_20240110_0_L2A | Sentinel-2B | 100.0 % ❌ |\n| S2B_32TQM_20240110_0_L2A | Sentinel-2B | 100.0 % ❌ |\n| S2B_33TUG_20240110_0_L2A | Sentinel-2B | 97.6 % ❌ |\n\n### 📅 5 January 2024\n| Scene ID | Platform | Cloud Cover |\n|---|---|---|\n| S2A_33TTG_20240105_0_L2A | Sentinel-2A | 95.5 % ❌ |\n| S2A_32TQM_20240105_0_L2A | Sentinel-2A | 95.6 % ❌ |\n| S2A_33TUG_20240105_0_L2A | Sentinel-2A | 85.6 % ❌ |\n\n---\n\n### Key Takeaways\n- **18 scenes total** across 6 acquisition dates (~5-day revisit), all acquired around **10:09 UTC**.\n- The **30 January** pass is by far the cleanest, with cloud cover as low as **1.5–1.6 %** on tiles 32TQM and 33TTG — ideal for analysis.\n- The first half of January was heavily clouded (≥61%), with 10 January being essentially fully overcast.\n- All scenes carry the full set of Sentinel-2 L2A spectral bands (blue, green, red, red-edges, NIR, SWIR, etc.) plus quality layers (SCL, AOT, WVP).",
+      "error": null
+    },
+    {
+      "id": "docs-and-catalog",
+      "passed": true,
+      "graded": [
+        "answer"
+      ],
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ranks": [],
+      "retrieved_sections": [],
+      "answered": true,
+      "tools": [
+        "rag_lookup",
+        "stac_search"
+      ],
+      "sources": [
+        "https://earth-search.aws.element84.com/v1",
+        "stac-spec-core"
+      ],
+      "steps": 2,
+      "cost_usd": 0.056196,
+      "ms": 26225,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "Here are the answers to both questions:\n\n---\n\n## 1. What does STAC call a \"scene\"?\n\nSTAC calls it an **Item**. According to the specification:\n\n> *\"A STAC Item object represents a unit of data and metadata, typically representing a **single scene of data at one place and time**.\"*\n\nAn Item is a **GeoJSON Feature** augmented with spatio-temporal metadata — including the time the asset represents, a thumbnail, and links to the actual data assets (e.g., satellite bands). Items are the core objects in a STAC Catalog or Collection.\n\n---\n\n## 2. Sentinel-2 L2A Items over Rome — January 2024\n\nThe search returned **18 Items** across three overlapping Sentinel-2 tiles (33TTG, 32TQM, 33TUG). Here is a summary grouped by acquisition date:\n\n| Date | Item ID | Platform | Cloud Cover |\n|------|---------|----------|-------------|\n| Jan 5 | `S2A_33TTG_20240105_0_L2A` | Sentinel-2A | 95.5% ☁️ |\n| Jan 5 | `S2A_32TQM_20240105_0_L2A` | Sentinel-2A | 95.6% ☁️ |\n| Jan 5 | `S2A_33TUG_20240105_0_L2A` | Sentinel-2A | 85.6% ☁️ |\n| Jan 10 | `S2B_33TTG_20240110_0_L2A` | Sentinel-2B | 100.0% ☁️ |\n| Jan 10 | `S2B_32TQM_20240110_0_L2A` | Sentinel-2B | 100.0% ☁️ |\n| Jan 10 | `S2B_33TUG_20240110_0_L2A` | Sentinel-2B | 97.6% ☁️ |\n| Jan 15 | `S2A_33TTG_20240115_0_L2A` | Sentinel-2A | 61.8% ☁️ |\n| Jan 15 | `S2A_32TQM_20240115_0_L2A` | Sentinel-2A | 63.4% ☁️ |\n| Jan 15 | `S2A_33TUG_20240115_0_L2A` | Sentinel-2A | 98.3% ☁️ |\n| Jan 20 | `S2B_33TTG_20240120_0_L2A` | Sentinel-2B | 22.8% 🌤️ |\n| Jan 20 | `S2B_32TQM_20240120_0_L2A` | Sentinel-2B | 24.1% 🌤️ |\n| Jan 20 | `S2B_33TUG_20240120_0_L2A` | Sentinel-2B | 76.2% ☁️ |\n| Jan 25 | `S2A_33TTG_20240125_0_L2A` | Sentinel-2A | 36.9% 🌤️ |\n| Jan 25 | `S2A_32TQM_20240125_0_L2A` | Sentinel-2A | 37.8% 🌤️ |\n| Jan 25 | `S2A_33TUG_20240125_0_L2A` | Sentinel-2A | 27.1% 🌤️ |\n| Jan 30 | `S2B_33TTG_20240130_0_L2A` | Sentinel-2B | **1.6% ✅** |\n| Jan 30 | `S2B_32TQM_20240130_0_L2A` | Sentinel-2B | **1.5% ✅** |\n| Jan 30 | `S2B_33TUG_20240130_0_L2A` | Sentinel-2B | 10.6% ✅ |\n\n### Key takeaways:\n- **January was mostly cloudy** over Rome, with the early and mid-month acquisitions heavily obscured.\n- The **best acquisitions** are from **30 January 2024** — tiles 33TTG and 32TQM have less than 2% cloud cover, making them ideal for analysis.\n- Each Item carries a rich set of assets including individual spectral bands (blue, green, red, NIR, SWIR, red-edge), scene classification layer (`scl`), aerosol optical thickness (`aot`), water vapour (`wvp`), and visual composites — available in both GeoTIFF and JP2 formats.",
+      "error": null
+    },
+    {
+      "id": "unknown-collection",
+      "passed": true,
+      "graded": [
+        "answer"
+      ],
+      "recall_at_k": null,
+      "precision_at_k": null,
+      "mrr": null,
+      "ranks": [],
+      "retrieved_sections": [],
+      "answered": true,
+      "tools": [],
+      "sources": [],
+      "steps": 1,
+      "cost_usd": 0.00897,
+      "ms": 6136,
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "missing_phrases": [],
+      "missing_sources": [],
+      "answer": "There is no such thing as **Sentinel-9** — it does not exist in the Sentinel satellite family. You may be thinking of one of these real missions:\n\n| Mission | What it does |\n|---|---|\n| **Sentinel-1** | Radar (SAR) imagery, all-weather, day & night |\n| **Sentinel-2** | Optical multispectral imagery (great for land cover, vegetation) |\n| **Sentinel-3** | Ocean & land colour, sea surface temperature |\n| **Sentinel-5P** | Atmospheric trace gases (NO₂, CO, O₃, etc.) |\n| **Sentinel-6** | Sea-level altimetry |\n\nThe catalog I can search includes **Sentinel-1 GRD** and **Sentinel-2 (L1C & L2A)**, which are the most commonly used for general-purpose Earth observation over land areas like Rome.\n\nCould you clarify which mission you meant? If you're interested in **optical imagery** of Rome, **Sentinel-2** is likely what you're looking for. If you need **radar/SAR**, **Sentinel-1** would be the right choice.",
+      "error": null
+    }
+  ]
+}

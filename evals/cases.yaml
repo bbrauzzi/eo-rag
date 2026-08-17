@@ -1,0 +1,137 @@
+# The labelled evaluation set.
+#
+# In the repository, not in the `eval_cases` table. A labelled set is an opinion about
+# what "correct" means, and opinions belong in review: this file diffs, a table does not.
+# See ROADMAP.md step 9 for why the table is superseded rather than filled in.
+#
+# ## How relevance is labelled
+#
+# `sections` names the section of the corpus that actually contains the answer, and a
+# retrieved chunk counts as relevant when its `section` is one of them. Sections rather
+# than chunk ids because ids are reassigned by every re-ingestion, while the section a
+# fact lives in is a property of the document.
+#
+# The honest limitation, stated once here and again in ROADMAP.md: this is a **coarse**
+# label. `Item fields` alone spans some 175 lines of the corpus and many chunks, so
+# recall@5 saturates near 1.0 and says little. **MRR and precision@k are where the signal
+# is** - they ask whether the *first* thing retrieved was on target, which is the question
+# that matters when the model only reads what it is given.
+#
+# ## Fields
+#
+#   id            stable identifier; the baseline is keyed on it, so do not renumber
+#   question      what gets asked, verbatim
+#   sections      ground truth for retrieval; omit for cases that are not about retrieval
+#   expect_tools  tools that MUST be called (extras are recorded, not failed)
+#   must_contain  substrings the answer must have, matched case-insensitively
+#   expect_sources sources the answer must cite
+#   tags          for --tag filtering; `docs` needs only the DB, `catalog` hits the network
+#   note          why this case exists, for whoever changes it later
+
+- id: item-required-fields
+  question: What are the required fields of a STAC Item?
+  sections: [Item fields]
+  # Four field names taken verbatim from the REQUIRED rows of the Item fields table.
+  # Deliberately not a phrase: any correct answer must name these, whatever prose it wraps
+  # them in, so this stays a correctness check rather than a wording check.
+  must_contain: [stac_version, geometry, properties, assets]
+  expect_sources: [stac-spec-core]
+  tags: [docs]
+  note: The question step 8's first live trace burned five lookups and $0.085 on.
+
+- id: catalog-vs-collection
+  question: What is the difference between a STAC Catalog and a STAC Collection?
+  sections: [Catalogs vs Collections, Collection Overview]
+  must_contain: [license]
+  expect_sources: [stac-spec-core]
+  tags: [docs]
+  note: >
+    Labelled with two sections after the first run of this harness said the case failed
+    outright. It had not: `Collection Overview` came back at rank 1 and answers the
+    question directly ("includes the core fields of the Catalog entity ... and adds
+    license and extents"), while the dedicated `Catalogs vs Collections` section ranked
+    6th. The label was wrong about where the answer lives, not the retrieval.
+
+    Kept as a note rather than quietly corrected, because the failure mode it represents
+    is the one that makes an eval actively harmful: a too-narrow label sends somebody off
+    to "fix" retrieval that was working. `Catalog Overview` is deliberately still excluded
+    - it describes catalogs without contrasting them, so it is a near miss, not an answer.
+
+- id: item-media-type
+  question: Which media type should a STAC Item use?
+  sections: [Media Type for STAC Item]
+  must_contain: ["application/geo+json"]
+  expect_sources: [stac-spec-core]
+  tags: [docs]
+  note: One short section, one exact answer - the easiest retrieval case in the set.
+
+- id: standalone-collection
+  question: What is a standalone Collection?
+  sections: [Standalone Collections]
+  expect_sources: [stac-spec-core]
+  tags: [docs]
+
+- id: collection-extent
+  question: What does the extent field of a STAC Collection describe?
+  sections: [Collection fields]
+  must_contain: [spatial, temporal]
+  expect_sources: [stac-spec-core]
+  tags: [docs]
+
+- id: catalog-required-fields
+  question: Which fields are required on a STAC Catalog?
+  sections: [Catalog fields]
+  must_contain: [stac_version, id, links]
+  expect_sources: [stac-spec-core]
+  tags: [docs]
+
+- id: item-assets
+  question: What does the assets field of a STAC Item contain?
+  sections: [Item fields]
+  expect_sources: [stac-spec-core]
+  tags: [docs]
+
+- id: extensions
+  question: How do STAC extensions work?
+  sections: [Extensions]
+  expect_sources: [stac-spec-core]
+  tags: [docs]
+
+- id: spatiotemporal-asset
+  question: What is a SpatioTemporal Asset in STAC?
+  sections: [Item Overview]
+  expect_sources: [stac-spec-core]
+  tags: [docs]
+
+# --- questions about data rather than documentation -------------------------
+#
+# No `sections`: retrieval is not what these test. They pin the router - that the model
+# reaches for the catalog rather than the documentation - which is the decision the
+# conditional edge makes and nothing else in the suite exercises against a live model.
+
+- id: catalog-search-rome
+  question: Which Sentinel-2 L2A scenes cover Rome in January 2024?
+  expect_tools: [stac_search]
+  tags: [catalog]
+  note: >
+    Also the datetime path: a bare month range has to be completed to RFC 3339 or the
+    catalog 400s, and a bare date sent as an instant silently matches nothing.
+
+- id: docs-and-catalog
+  question: >
+    What does STAC call a scene, and which Sentinel-2 L2A scenes are available over
+    Rome in January 2024?
+  expect_tools: [rag_lookup, stac_search]
+  tags: [catalog]
+  note: >
+    The question the router was designed around and the reason there is no upfront
+    classifier: a hard documentation-vs-data decision cannot express "both".
+
+- id: unknown-collection
+  question: Find me some Sentinel-9 imagery over Rome.
+  tags: [catalog]
+  must_contain: [sentinel]
+  note: >
+    There is no Sentinel-9. The allowlist should refuse it locally and the model should
+    say so rather than reporting the catalog's empty result set as fact - the failure
+    `_validate_collections` exists to prevent.
