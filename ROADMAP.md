@@ -489,24 +489,20 @@ refused even from localhost. `MCP_ALLOWED_HOSTS` is not optional behind a proxy.
 ## Cross-cutting
 
 Not roadmap steps, but they get more expensive the longer they wait — and with steps 0-10
-done, this list *is* the backlog. **Version control and CI are the two that now matter
-most**: there are ten steps of decisions here and no history of any of them, and the MCP
-step alone added a Dockerfile change and an image-only bug that only a build would catch.
+done, this list *is* the backlog.
 
-- [ ] **Two optional extras now, and the "passes without them" rule is manual.** `uv run
-      --extra dev` is additive and will not remove a previously installed extra, so the
-      without-the-extra run needs `uv sync --extra dev` first. That is exactly the kind of
-      thing CI should be doing rather than a person remembering.
+- [x] ~~Two optional extras now, and the "passes without them" rule is manual.~~ — CI
+      (`.github/workflows/ci.yml`) runs `uv sync --extra dev` then `uv run --no-sync pytest`
+      as its own job step, so the without-the-extra run no longer relies on a person
+      remembering it.
 - [ ] **`httpx` and `httpx2` are both installed** once the `mcp` extra is in — the SDK
       depends on the second, nothing else does. Not a fault, but worth knowing before
       somebody "consolidates" them.
 
-- [ ] **Version control**: the project is not a git repo. No diffs, no undo, right as the first
-      non-trivial component lands. Step 6 roughly doubled the file count — this will never
-      be cheaper to fix than it is now.
-- [ ] **The build step is unguarded**: `frontend/` is compiled in the image's node stage,
-      and nothing checks it. A TypeScript error fails `docker compose build`, which is the
-      worst place to find one.
+- [x] ~~Version control~~ — the project is a git repo on `main`, tracking `origin/main`.
+- [x] ~~The build step is unguarded~~ — CI runs `npm run build` (`tsc -b && vite build`) on
+      every push/PR, so a TypeScript error is now caught there instead of mid
+      `docker compose build`.
 - [x] ~~`Anthropic(...)` built at import time~~ — fixed in step 3b: the client is now lazy and
       cached in `app/agents/graph.py`, like the Bedrock and STAC ones
 - [ ] **Embedding dimension duplicated in three places**: `settings.embedding_dim`,
@@ -514,8 +510,11 @@ step alone added a Dockerfile change and an image-only bug that only a build wou
       A mismatch only shows up at insert time.
 - [ ] **No migrations**: `init_db.sql` runs only when the data volume is first created, and the
       SQLAlchemy models mirror it by hand
-- [ ] **No CI**: ruff and pytest only run when someone remembers to run them, and since
-      step 6 that goes for `npm run build` and `vitest` too
+- [x] ~~No CI~~ — `.github/workflows/ci.yml`: a `python` job (ruff, then pytest without and
+      with the `mcp` extra) and a `frontend` job (`npm run build`, `npm test`), on push and
+      PR to `main`. The eval harness and the live checks in `VERIFY.md` are deliberately
+      not in it — both need live services and spend money, which is not what a run on
+      every push should do.
 - [ ] **No `[tool.ruff]` section** in `pyproject.toml`: line length and rule set are implicit
 - [ ] **`embed_texts` is sequential** — one InvokeModel call per text. Fine at this corpus size;
       the docstring already flags `ThreadPoolExecutor` as the way out.
