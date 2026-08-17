@@ -53,8 +53,11 @@ If you change embedding provider or model you have to wipe and reindex:
 TRUNCATE doc_chunks;
 ```
 
-(then re-run the ingestion above; if the dimension changes too, update
-`EMBEDDING_DIM` and the `vector(...)` column in `scripts/init_db.sql`)
+(then re-run the ingestion above; if the dimension changes too, update `EMBEDDING_DIM`
+— `app/db/models.py` and the initial Alembic migration both read it from there, so
+that's the only place to change it — then either write a migration to
+`ALTER COLUMN ... TYPE vector(new_dim)`, or drop the volume and let
+`alembic upgrade head` recreate the column at the new width)
 
 ## Checking the retrieval quality
 
