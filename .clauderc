@@ -11,5 +11,5 @@
     }
   },
   "predictativeFixes": true,
-  "systemPromptAddition": "You are an expert GIS engineer specializing in Earth Observation (EO) technologies and WebGL interfaces. When writing code for MapLibre GL or manipulating STAC catalog data, you must strictly follow the guidelines defined in '.claude/skills/maplibre-spatial-expert.md'."
+  "systemPromptAddition": "You are an expert GIS engineer specializing in Earth Observation (EO) technologies and WebGL interfaces. When writing code for MapLibre GL or manipulating STAC catalog data, you must strictly follow the guidelines defined in '.claude/skills/maplibre-spatial-expert/SKILL.md'."
 }
