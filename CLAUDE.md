@@ -14,6 +14,9 @@ uv run --extra dev ruff check .                     # lint
 
 uv sync --extra observability                       # optional: the Langfuse exporter
 uv sync --extra mcp                                 # optional: the MCP server
+
+alembic upgrade head                                 # apply schema migrations
+alembic revision -m "add a column"                   # write a new one
 ```
 
 The MCP server is not part of `pytest` either — it is a second front end onto the same
@@ -49,7 +52,11 @@ Running the stack:
 
 ```bash
 docker compose up -d          # Postgres+pgvector (:5432) and the API + UI (:8000, --reload)
-docker compose up -d db       # DB only, then run the API locally:
+                               # the api container's entrypoint runs `alembic upgrade head`
+                               # before uvicorn, so the schema is never a separate step here
+docker compose up -d db       # DB only, then run the API locally - migrations are *not*
+                               # run for you on this path, so do it once yourself first:
+uv run alembic upgrade head
 uv run uvicorn app.main:app --reload
 
 docker compose exec api python -m app.rag.ingest data/stac-spec-core.md --source "stac-spec.md"
@@ -552,25 +559,51 @@ datetime bug and a `MAX_TOKENS` truncation were found.
 
 `app/rag/embeddings.py` is the only module that talks to Bedrock, deliberately: both
 ingestion and retrieval call it so the model and dimension can't drift apart between
-indexing and querying. `embed_texts` loops one call per text — Titan's InvokeModel has
-no batch API. The boto3 client is built lazily and cached in `_cached_client` so that
-importing the app never touches AWS.
+indexing and querying. `embed_texts` fans one InvokeModel call per text out across a
+`ThreadPoolExecutor` — Titan has no batch API, and the round trip to Bedrock, not local
+CPU, is what a text spends its time on. `pool.map` keeps the result order matching the
+input order regardless of which call finishes first; boto3's low-level clients (unlike
+its Resources) are documented thread-safe, so the single cached client is shared across
+the pool without a lock. The boto3 client is built lazily and cached in `_cached_client`
+so that importing the app never touches AWS.
 
-### The embedding dimension is duplicated in three places
+### The embedding dimension has one source now, not three
 
-`settings.embedding_dim` (default 1024) → `Vector(...)` in `app/db/models.py` →
-the literal `vector(1024)` in `scripts/init_db.sql`. Changing the embedding model
-means updating the SQL column, `EMBEDDING_DIM`, then `TRUNCATE doc_chunks;` and
-re-ingesting — vectors from different models are not comparable, and a dimension
-mismatch fails at insert time.
+`settings.embedding_dim` (default 1024) feeds `Vector(...)` in `app/db/models.py`
+*and* the initial Alembic revision's `vector({settings.embedding_dim})` — the SQL no
+longer carries its own hardcoded `1024`. Changing the embedding model still means
+updating `EMBEDDING_DIM`, then `TRUNCATE doc_chunks;` and re-ingesting (vectors from a
+different model are not comparable), and — since the column width is set once, at
+table creation — writing a migration to `ALTER COLUMN ... TYPE vector(new_dim)` or
+dropping the volume so `alembic upgrade head` recreates the column at the new width.
+What the old duplication actually caused (a dimension mismatch failing silently until
+insert time) is gone; the migration step to change it is not.
 
-### Schema has no migrations
+### Schema migrations
 
-`scripts/init_db.sql` is mounted into the pgvector image's
-`/docker-entrypoint-initdb.d/`, so it runs **only when the data volume is first
-created**. The SQLAlchemy models mirror it by hand. Editing the SQL has no effect on
-an existing database — recreate the volume (`docker compose down -v`) or apply the
-DDL manually.
+`alembic/` replaces `scripts/init_db.sql`, which is deleted. `alembic upgrade head`
+applies pending revisions; `app/db/models.py` still mirrors the schema by hand for
+SQLAlchemy's benefit, same as before — Alembic does not read the models at runtime,
+only `--autogenerate` would, and the one revision committed so far
+(`alembic/versions/d64352cad014_initial_schema.py`) is hand-written, not generated.
+
+That revision is raw SQL using `CREATE ... IF NOT EXISTS` throughout, mirroring the old
+`init_db.sql` byte for byte on a fresh database — and, deliberately, **also a no-op on a
+database that file already initialized**, which is every volume created before this
+existed. Verified against both: a fresh `pgvector/pgvector:pg16` container, and one
+seeded with the old `init_db.sql` mount — `alembic upgrade head` produces the same
+schema either way and only adds the `alembic_version` table.
+
+The image runs migrations for you: `scripts/docker-entrypoint.sh` is the container's
+`ENTRYPOINT`, and calls `alembic upgrade head` before `exec`-ing whatever `CMD` (or
+compose's `--reload` override) was going to run. `docker compose up -d db` plus a
+locally-run API is the one path that does **not** go through it — run
+`uv run alembic upgrade head` yourself first on that path, or `/ask` fails against a
+database with no `doc_chunks` table.
+
+`alembic.ini` carries no `sqlalchemy.url` — `alembic/env.py` imports
+`app.config.settings` and sets it from `settings.database_url`, the same URL the app
+itself connects with, rather than keeping a second copy that can drift from `.env`.
 
 ### Chunking contract
 

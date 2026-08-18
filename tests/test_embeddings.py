@@ -3,6 +3,7 @@
 import importlib
 import io
 import json
+import time
 
 import pytest
 from botocore.exceptions import ClientError
@@ -55,14 +56,40 @@ def test_embed_text_returns_embedding(fake_client):
     assert len(vector) == settings.embedding_dim
 
 
-def test_embed_texts_one_call_per_text_in_order(fake_client):
+def test_embed_texts_one_call_per_text(fake_client):
+    """One InvokeModel per text - order of the calls themselves is not guaranteed,
+    since embed_texts fans them out across a thread pool."""
     texts = ["first", "second", "third"]
     vectors = embeddings.embed_texts(texts)
 
     assert len(vectors) == len(texts)
     assert len(fake_client.calls) == len(texts)
     sent = [json.loads(c["body"])["inputText"] for c in fake_client.calls]
-    assert sent == texts
+    assert sorted(sent) == sorted(texts)
+
+
+def test_embed_texts_preserves_input_order(monkeypatch):
+    """The result order matches the input order even when calls complete out of
+    order - pool.map's contract, not the fake's."""
+
+    class SlowestFirstClient:
+        def invoke_model(self, **kwargs):
+            text = json.loads(kwargs["body"])["inputText"]
+            # The text that would finish last if calls ran in submission order
+            # completes fastest here, to prove the result isn't just completion order.
+            if text == "third":
+                pass
+            else:
+                time.sleep(0.05)
+            payload = {"embedding": [float(len(text))] * settings.embedding_dim}
+            return {"body": io.BytesIO(json.dumps(payload).encode("utf-8"))}
+
+    monkeypatch.setattr(embeddings, "_client", lambda: SlowestFirstClient())
+
+    texts = ["first", "second", "third"]
+    vectors = embeddings.embed_texts(texts)
+
+    assert vectors == [[float(len(t))] * settings.embedding_dim for t in texts]
 
 
 def test_embed_texts_empty(fake_client):

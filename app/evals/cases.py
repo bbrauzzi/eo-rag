@@ -9,9 +9,12 @@ its natural home is wherever opinions get reviewed: a YAML file diffs in a pull 
 travels with the code that it grades, and can be edited without a database. A row cannot
 do any of those.
 
-The table is left in place rather than dropped - `scripts/init_db.sql` runs only when the
-data volume is first created, so removing it would cost a migration for a table nothing
-reads. It is dead schema, and ROADMAP.md says so.
+The table is left in place rather than dropped. Dropping it is a one-line Alembic
+migration now that `alembic/` exists - it wasn't when this reasoning was first written,
+back when `scripts/init_db.sql` only ran on a data volume's first creation and removing
+a table meant a manual `ALTER` on every existing database. That's no longer the blocker;
+schema cleanup is just out of scope for this file. It is dead schema, and ROADMAP.md
+says so.
 
 ## Two kinds of case in one file
 

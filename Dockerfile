@@ -31,6 +31,10 @@ COPY pyproject.toml .
 RUN pip install --no-cache-dir ".[mcp]"
 
 COPY app ./app
+COPY alembic.ini .
+COPY alembic ./alembic
+COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Picked up by the StaticFiles mount in app/main.py, which is conditional on this
 # directory existing - so a local checkout with no build still runs.
@@ -38,4 +42,9 @@ COPY --from=ui /ui/dist ./frontend_dist
 
 EXPOSE 8000
 
+# The entrypoint runs `alembic upgrade head` before exec-ing whatever CMD (or
+# docker-compose's `command:` override) was going to run - so `docker run` and the
+# compose `--reload` dev command both get the migration for free instead of it being
+# a step someone has to remember on top of either.
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

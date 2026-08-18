@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Lint
+        run: uv run --extra dev ruff check .
+
+      # The suite must pass without the mcp/observability extras: app/mcp/tools.py and
+      # app/mcp/resources.py are deliberately SDK-free so they're testable without `mcp`
+      # installed. `uv run --extra dev` is additive, so this needs its own sync first.
+      - name: Test without optional extras
+        run: |
+          uv sync --extra dev
+          uv run --no-sync pytest -q
+
+      - name: Test with all extras
+        run: uv run --extra dev --extra mcp pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Runs tsc -b, so this is the guard the roadmap flagged as missing: a TypeScript
+      # error now fails CI instead of surfacing mid `docker compose build`.
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
