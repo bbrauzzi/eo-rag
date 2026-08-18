@@ -33,6 +33,10 @@ RUN pip install --no-cache-dir ".[mcp]"
 COPY app ./app
 COPY alembic.ini .
 COPY alembic ./alembic
+# The ingest CLI (`python -m app.rag.ingest data/...`) is meant to run inside this image
+# against a deployed database, not just via a bind mount in dev - so the corpus travels
+# with the image rather than staying dev-only.
+COPY data ./data
 COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
