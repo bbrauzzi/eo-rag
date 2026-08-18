@@ -12,6 +12,5 @@ __pycache__/
 .idea/
 .git/
 
-data/
 tests/
 .env
