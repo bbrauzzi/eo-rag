@@ -10,6 +10,9 @@ const SUGGESTIONS = [
   'What are STAC Items?',
   'Which Sentinel-2 scenes cover Rome in January 2024 with less than 20% cloud?',
   'What is the mean NDVI over the centre of Rome in that scene?',
+  'What is the difference between a STAC Catalog and a STAC Collection?',
+  'How do STAC extensions work?',
+  'What does STAC call a scene, and which Sentinel-2 L2A scenes are available over Rome in January 2024?',
 ]
 
 export function Composer({ onAsk, onStop, streaming }: Props) {
