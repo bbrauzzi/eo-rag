@@ -21,8 +21,9 @@ terraform {
 }
 
 provider "aws" {
-  region  = var.aws_region
-  profile = var.aws_profile
+  region = var.aws_region
+  # See infra/provider.tf for why null (not "") matters here.
+  profile = var.aws_profile != "" ? var.aws_profile : null
 
   default_tags {
     tags = {

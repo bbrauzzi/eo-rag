@@ -74,7 +74,12 @@ resource "aws_ecs_task_definition" "app" {
         # depends on aws_lb.this.dns_name. Without it, the MCP SDK's Host-header check
         # (localhost/127.0.0.1 only, by default) 421s every /mcp request once traffic
         # actually arrives via the ALB's hostname.
-        { name = "MCP_ALLOWED_HOSTS", value = aws_lb.this.dns_name },
+        # app/config.py's mcp_allowed_hosts is a list[str] - pydantic-settings decodes a
+        # plain-string env var for a list field as JSON, not a bare/comma-separated
+        # string (confirmed live: a bare hostname here crashes Settings() at import with
+        # json.decoder.JSONDecodeError, taking the whole container down before uvicorn
+        # ever starts - not just an /mcp-specific failure).
+        { name = "MCP_ALLOWED_HOSTS", value = jsonencode([aws_lb.this.dns_name]) },
       ]
 
       secrets = [

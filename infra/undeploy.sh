@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-: "${TF_VAR_aws_profile:?run: source infra/env.sh}"
+: "${TF_VAR_aws_profile?run: source infra/env.sh}" # no colon - empty is a valid value, see provider.tf
 : "${TF_VAR_aws_region:?run: source infra/env.sh}"
 : "${TF_VAR_anthropic_api_key:?run: source infra/env.sh}"
 : "${TF_VAR_ecr_repository_url:?run: source infra/env.sh}"

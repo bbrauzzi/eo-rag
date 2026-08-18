@@ -25,8 +25,14 @@ terraform {
 }
 
 provider "aws" {
-  region  = var.aws_region
-  profile = var.aws_profile
+  region = var.aws_region
+  # null (not "") is what tells the provider "don't force profile-based resolution" -
+  # an explicit profile takes priority over AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY env
+  # vars, which breaks any credential source that only sets those (e.g. a broker whose
+  # `aws` CLI understands but the Go SDK doesn't, flattened via
+  # `aws configure export-credentials`). Leave aws_profile empty to defer to the
+  # standard env/instance-role chain instead.
+  profile = var.aws_profile != "" ? var.aws_profile : null
 
   default_tags {
     tags = {
