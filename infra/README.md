@@ -16,6 +16,68 @@ No auth sits in front of `/ask` — the app's own guardrails (`MAX_CONVERSATION_
 `MAX_CONVERSATION_COST_USD`, `RATE_LIMIT_ASK_PER_MINUTE`) are what bound cost exposure.
 Fine for a demo; add real auth before this is anything more than that.
 
+## Credentials
+
+Two unrelated secrets flow through `env.sh`, and confusing them is the easiest way to
+get stuck here:
+
+- **AWS credentials** authenticate you to AWS — they're what Terraform uses, and what
+  every raw `aws` CLI call in `deploy.sh`/`undeploy.sh` uses too (`ecs wait
+  services-stable`, `ecs run-task`, `ecs describe-tasks`, and `aws logs tail` if you go
+  troubleshooting). Scoping permissions for Terraform alone and forgetting the scripts'
+  own `aws` calls is a common gap.
+- **`TF_VAR_anthropic_api_key`** has nothing to do with AWS auth. It's the *deployed
+  app's* own secret for calling Claude — stored in Secrets Manager and injected into the
+  ECS task as `ANTHROPIC_API_KEY`. It also ends up in Terraform state as a resource
+  attribute (`secrets.tf`), which is why the state bucket is created with encryption
+  (see below) and why `env.sh` itself is gitignored.
+
+**Which AWS credentials, and how `TF_VAR_aws_profile` works:** most setups just need a
+named profile (`~/.aws/credentials`) in `TF_VAR_aws_profile`. If your `aws` CLI resolves
+credentials through something Terraform's Go-based AWS provider can't use directly (SSO
+via a custom broker, an internal login tool — the symptom is `terraform apply` failing
+with `No valid credential sources found` even though `aws sts get-caller-identity` works
+fine), leave `TF_VAR_aws_profile` empty instead and rely on the `eval "$(aws configure
+export-credentials --format env)"` line already in `env.sh.example`: it flattens
+whatever the CLI resolved into plain `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`/
+`AWS_SESSION_TOKEN`, which every AWS SDK understands. Re-running `source infra/env.sh`
+refreshes expired temporary credentials with no other change needed.
+
+**What IAM permissions that AWS identity needs:** everything both stacks touch —
+
+- **EC2**: describe the default VPC/subnets; create/describe/delete security groups and rules
+- **RDS**: create/modify/describe/delete the DB instance and DB subnet group, plus
+  `describe-db-engine-versions` (used in the one-time setup below)
+- **Elastic Load Balancing v2**: load balancer, target group, listener — create/describe/delete
+- **ECS**: cluster, task definition, service — create/describe/delete/update, plus
+  `RunTask`/`DescribeTasks` (`deploy.sh` runs the ingestion task directly, not through Terraform)
+- **IAM**: create/delete role, put/delete role policy, attach/detach managed policy, and
+  `iam:PassRole` for the two roles below (needed to register the task definition/service
+  against them)
+- **Secrets Manager**: create/delete secret, put/get secret value
+- **CloudWatch Logs**: create/delete log group, put retention policy, plus
+  `FilterLogEvents`/`GetLogEvents` for the `aws logs tail` step under Verify
+- **ECR**: repo create/delete/describe (persistent stack), plus the push permissions
+  (`GetAuthorizationToken`, layer upload, `PutImage`) for "build and push the image once"
+- **S3**: the state bucket (create/versioning/encryption below, plus ongoing read/write
+  as the Terraform backend)
+- **STS**: `GetCallerIdentity`
+
+For a personal/demo AWS account, the simplest correct answer is attaching
+`AdministratorAccess` to the profile — consistent with this stack's own "fine for a
+demo" posture above. The list is there for anyone who'd rather scope a tighter policy
+down to just what's used.
+
+**IAM roles for the running app — nothing to set up by hand.** Terraform creates and
+attaches two roles (`iam.tf`), and you never touch either directly:
+
+- `eo-rag-ecs-task-execution` — what ECS itself assumes to pull the image, write logs,
+  and fetch the two Secrets Manager secrets before the container ever starts.
+- `eo-rag-ecs-task` — what the application code assumes at runtime; this is how
+  `app/rag/embeddings.py`'s Bedrock calls authenticate (boto3's default credential chain
+  inside the task, no static AWS keys anywhere in the task definition), scoped to
+  exactly `bedrock:InvokeModel` on the configured embedding model.
+
 ## One-time setup (do this once, ever)
 
 ```bash
@@ -29,8 +91,10 @@ aws rds describe-db-engine-versions --engine postgres --profile $PROFILE --regio
 ```
 
 Also confirm in the Bedrock console (**Model access**) that `amazon.titan-embed-text-v2:0`
-is enabled in `$REGION` — no reliable one-shot CLI enable for this; calls fail with
-`AccessDeniedException` until it is.
+is enabled in `$REGION` — no reliable one-shot CLI enable for this. This is a separate,
+console-only switch that no IAM policy or Terraform resource grants: the `eo-rag-ecs-task`
+role's `bedrock:InvokeModel` permission (see Credentials above) is necessary but not
+sufficient, and calls fail with `AccessDeniedException` until model access is enabled too.
 
 **State bucket** (not Terraform-managed, shared by both stacks):
 
