@@ -36,7 +36,17 @@
       "Bash(pkill -f \"uvicorn app.main:app\")",
       "Bash(RATE_LIMIT_ASK_PER_MINUTE=0 RATE_LIMIT_PROXY_PER_MINUTE=3 nohup uv run uvicorn app.main:app --port 8079)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X POST http://localhost:8079/ask -H 'Content-Type: application/json' -d '{}')",
-      "Bash(curl -s -o /dev/null -w \"%{http_code} \" http://localhost:8079/preview/nonexistent)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code} \" http://localhost:8079/preview/nonexistent)",
+      "Bash(curl -sS -w '\\\\nHTTP %{http_code}\\\\n' http://localhost:8000/health)",
+      "Bash(curl -sS -o /dev/null -w 'HTTP %{http_code}, content-type: %{content_type}\\\\n' http://localhost:8000/)",
+      "Bash(curl -sS -w '\\\\nHTTP %{http_code}\\\\n' -X POST http://localhost:8000/ask -H \"Content-Type: application/json\" -d '{\"question\": \"What are STAC Items?\"}')",
+      "Bash(terraform version *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" https://releases.hashicorp.com/terraform/ --max-time 5)",
+      "Bash(curl -sL -o tf.zip \"https://releases.hashicorp.com/terraform/1.9.8/terraform_1.9.8_linux_amd64.zip\")",
+      "Bash(unzip -o -q tf.zip)",
+      "Bash(chmod +x terraform)",
+      "Bash(./terraform version *)",
+      "Bash(/tmp/claude-1000/-home-bla-dev-eo-rag/57eb2f54-3d14-48ac-9edd-ec6f695bd168/scratchpad/terraform init *)"
     ]
   }
 }
