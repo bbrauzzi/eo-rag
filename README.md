@@ -7,7 +7,12 @@ in both the specification and the live catalog.**
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)
 
-<!-- DEMO-GIF -->
+<p align="center">
+  <img src="docs/images/demo.gif" width="960"
+       alt="One question — &quot;What is a STAC Item, and which Sentinel-2 scenes cover Rome in January 2024 with less than 20% cloud?&quot; — answered by chaining a documentation lookup and a live catalog search: the tool trace shows both running, the answer streams in with the scene cards below it, three footprints are drawn over Lazio, and clicking one lays that scene's quicklook over it.">
+</p>
+
+<p align="center"><sub>One question, both halves: the STAC specification looked up in the indexed docs, and the matching Sentinel-2 scenes fetched live from the catalog and drawn on the map.</sub></p>
 
 Working with satellite imagery means holding two things in your head at once: what the
 data model says, and what is actually in the archive. *What exactly is a STAC Item?* is a
