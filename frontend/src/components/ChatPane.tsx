@@ -1,13 +1,11 @@
 import { useEffect, useRef } from 'react'
 
-import type { StacCollection } from '../api/types'
 import type { Turn as TurnData } from '../hooks/useConversation'
 import { Composer } from './Composer'
 import { Turn } from './Turn'
 
 interface Props {
   turns: TurnData[]
-  features: StacCollection | null
   selectedId: string | null
   hoveredId: string | null
   quicklooks: string[]
@@ -34,7 +32,6 @@ function Empty() {
 
 export function ChatPane({
   turns,
-  features,
   selectedId,
   hoveredId,
   quicklooks,
@@ -69,12 +66,10 @@ export function ChatPane({
         {turns.length === 0 ? (
           <Empty />
         ) : (
-          turns.map((turn, i) => (
+          turns.map((turn) => (
             <Turn
               key={turn.id}
               turn={turn}
-              features={features}
-              isLast={i === turns.length - 1}
               selectedId={selectedId}
               hoveredId={hoveredId}
               quicklooks={quicklooks}

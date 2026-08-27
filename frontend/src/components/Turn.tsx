@@ -1,15 +1,12 @@
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
-import type { StacCollection } from '../api/types'
 import type { Turn as TurnData } from '../hooks/useConversation'
 import { ItemCards } from './ItemCards'
 import { ToolTrace } from './ToolTrace'
 
 interface Props {
   turn: TurnData
-  features: StacCollection | null
-  isLast: boolean
   selectedId: string | null
   hoveredId: string | null
   quicklooks: string[]
@@ -40,8 +37,6 @@ function Source({ value }: { value: string }) {
 
 export function Turn({
   turn,
-  features,
-  isLast,
   selectedId,
   hoveredId,
   quicklooks,
@@ -83,11 +78,12 @@ export function Turn({
         </p>
       )}
 
-      {/* Cards belong to the turn that produced the footprints, which is the last one to
-          have sent a features event - so only the newest turn shows them. */}
-      {isLast && features && (
+      {/* Cards belong to the turn that produced the footprints and stay with it. The map
+          keeps showing the last collection across turns; the chat must not, or a follow-up
+          that ran no tool appears to have returned the previous turn's scenes. */}
+      {turn.features && (
         <ItemCards
-          features={features.features}
+          features={turn.features.features}
           selectedId={selectedId}
           hoveredId={hoveredId}
           quicklooks={quicklooks}

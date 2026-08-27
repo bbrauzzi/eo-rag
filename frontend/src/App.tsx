@@ -135,7 +135,6 @@ export function App() {
         >
           <ChatPane
             turns={state.turns}
-            features={state.features}
             selectedId={state.selectedId}
             hoveredId={state.hoveredId}
             quicklooks={state.quicklooks}

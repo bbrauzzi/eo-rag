@@ -24,15 +24,23 @@ export interface Turn {
   steps?: number
   status: 'streaming' | 'done' | 'stopped' | 'error'
   error?: string
+  /**
+   * The footprints this turn produced, or nothing if it ran no tool that returned any.
+   * Held per turn and not read off the conversation's `features` below, which is kept
+   * across turns for the map: the cards under an answer have to describe *that* answer,
+   * or the previous search's scenes end up sitting under "what is a STAC feature?".
+   */
+  features?: StacCollection
 }
 
 export interface ConversationState {
   conversationId: string | null
   turns: Turn[]
   /**
-   * The last non-empty collection, kept across turns. A turn that runs no tool sends no
-   * features event, so nothing here changes - which is right: "which of those has the
-   * least cloud?" is about the footprints already on screen.
+   * The last non-empty collection, kept across turns, and what the map draws. A turn
+   * that runs no tool sends no features event, so nothing here changes - which is right:
+   * "which of those has the least cloud?" is about the footprints already on screen.
+   * The chat's cards read `Turn.features` instead, which does not carry over.
    */
   features: StacCollection | null
   selectedId: string | null
@@ -127,8 +135,12 @@ function reduce(state: ConversationState, action: Action): ConversationState {
 
         case 'features':
           // The only action that replaces this reference, which is what lets the map
-          // pane skip re-rendering for every token.
-          return { ...state, features: event.collection }
+          // pane skip re-rendering for every token. The same collection also lands on
+          // the turn that produced it, where the cards read it from.
+          return {
+            ...patchLast(state, { features: event.collection }),
+            features: event.collection,
+          }
 
         case 'done':
           return patchLast(state, {
