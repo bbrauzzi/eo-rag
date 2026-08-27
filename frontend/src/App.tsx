@@ -32,7 +32,7 @@ function Header({
   return (
     <header className="border-line bg-panel flex h-11 shrink-0 items-center gap-3 border-b px-3">
       <span className="text-ink text-[13px] font-semibold tracking-tight">
-        EO<span className="text-accent">Rag</span>
+        EO<span className="text-accent">-RAG</span>
       </span>
 
       {conversationId && (

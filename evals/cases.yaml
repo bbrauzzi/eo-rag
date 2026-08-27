@@ -2,7 +2,7 @@
 #
 # In the repository, not in the `eval_cases` table. A labelled set is an opinion about
 # what "correct" means, and opinions belong in review: this file diffs, a table does not.
-# See ROADMAP.md step 9 for why the table is superseded rather than filled in.
+# See docs/decisions.md (Evaluation) for why the table is superseded rather than filled in.
 #
 # ## How relevance is labelled
 #
@@ -11,7 +11,7 @@
 # than chunk ids because ids are reassigned by every re-ingestion, while the section a
 # fact lives in is a property of the document.
 #
-# The honest limitation, stated once here and again in ROADMAP.md: this is a **coarse**
+# The honest limitation, stated once here and again in docs/decisions.md: this is a **coarse**
 # label. `Item fields` alone spans some 175 lines of the corpus and many chunks, so
 # recall@5 saturates near 1.0 and says little. **MRR and precision@k are where the signal
 # is** - they ask whether the *first* thing retrieved was on target, which is the question

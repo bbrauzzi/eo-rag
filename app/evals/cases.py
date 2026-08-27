@@ -13,7 +13,7 @@ The table is left in place rather than dropped. Dropping it is a one-line Alembi
 migration now that `alembic/` exists - it wasn't when this reasoning was first written,
 back when `scripts/init_db.sql` only ran on a data volume's first creation and removing
 a table meant a manual `ALTER` on every existing database. That's no longer the blocker;
-schema cleanup is just out of scope for this file. It is dead schema, and ROADMAP.md
+schema cleanup is just out of scope for this file. It is dead schema, and docs/decisions.md
 says so.
 
 ## Two kinds of case in one file

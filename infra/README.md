@@ -1,9 +1,14 @@
-# Deploying eo-rag to AWS
+# Deploying EO-RAG to AWS
+
+Terraform for a small, inexpensive AWS deployment: enough to put a working instance in
+front of someone, cheap enough to leave running, and quick to destroy when you are done.
+Sized for a single instance with no autoscaling — see [Sizing and limits](#sizing-and-limits)
+before pointing production traffic at it.
 
 Two Terraform stacks, on purpose:
 
 - **`infra/persistent/`** — the S3 state bucket (created by hand) and the ECR repo.
-  Created **once, ever**. Nothing here is destroyed between demos.
+  Created **once, ever**. Nothing here is destroyed between deployments.
 - **`infra/`** — RDS, the ALB, ECS (cluster/task/service), Secrets Manager, IAM. This is
   the **ephemeral** stack: `./deploy.sh` / `./undeploy.sh` create and destroy all of it,
   cheaply and often, without ever touching the pushed image.
@@ -12,9 +17,12 @@ Architecture: ECS Fargate (one task, no autoscaling) + RDS PostgreSQL/pgvector
 (single-AZ) + an internet-facing ALB (HTTP only, no custom domain) + ECR, all in the
 account's default VPC.
 
-No auth sits in front of `/ask` — the app's own guardrails (`MAX_CONVERSATION_TURNS`,
-`MAX_CONVERSATION_COST_USD`, `RATE_LIMIT_ASK_PER_MINUTE`) are what bound cost exposure.
-Fine for a demo; add real auth before this is anything more than that.
+> **No authentication sits in front of `/ask`.** The app's own guardrails
+> (`MAX_CONVERSATION_TURNS`, `MAX_CONVERSATION_COST_USD`, `RATE_LIMIT_ASK_PER_MINUTE`)
+> bound *cost*, not *access* — anyone with the URL can spend your model budget. That is an
+> accepted trade for a short-lived demo behind a URL you share deliberately. Put
+> authentication in front of the ALB before this is anything more than that; see
+> [SECURITY.md](../SECURITY.md).
 
 ## Credentials
 
@@ -64,9 +72,9 @@ refreshes expired temporary credentials with no other change needed.
 - **STS**: `GetCallerIdentity`
 
 For a personal/demo AWS account, the simplest correct answer is attaching
-`AdministratorAccess` to the profile — consistent with this stack's own "fine for a
-demo" posture above. The list is there for anyone who'd rather scope a tighter policy
-down to just what's used.
+`AdministratorAccess` to the profile — consistent with the short-lived-demo posture
+stated at the top of this document. The list is there for anyone who'd rather scope a
+tighter policy down to just what's used.
 
 **IAM roles for the running app — nothing to set up by hand.** Terraform creates and
 attaches two roles (`iam.tf`), and you never touch either directly:
@@ -145,12 +153,12 @@ cp infra/env.sh.example infra/env.sh
 # (= $ECR_URL from above), image_tag=demo, db_engine_version (from the describe call above)
 ```
 
-## The repeatable cycle (before/after an interview)
+## The repeatable cycle (spin up, demo, tear down)
 
 ```bash
 source infra/env.sh
 ./infra/deploy.sh      # terraform apply + wait for the service + re-ingest the STAC doc
-#   ... share the printed http://<alb-dns-name> link, do the interview ...
+#   ... share the printed http://<alb-dns-name> link, run the demo ...
 ./infra/undeploy.sh    # terraform destroy - RDS, ALB, ECS all gone, billing stops
 ```
 
@@ -166,14 +174,15 @@ Three things worth knowing about this cycle, since it trades speed for stateless
   ingestion takes seconds; RDS provisioning itself is the slow part of `deploy.sh`
   (several minutes) — budget more like 5–10 minutes end to end than "a few," especially
   the first `deploy.sh` after any gap.
-- **The ALB's DNS name changes on every `deploy.sh`.** There's no static domain (see the
-  Domain/TLS decision in the project's deployment plan), so re-share the link each time
-  rather than bookmarking one.
+- **The ALB's DNS name changes on every `deploy.sh`.** There's no static domain and no
+  TLS - a custom domain would mean a hosted zone and an ACM certificate that outlive the
+  ephemeral stack, which is exactly what this split avoids. So re-share the link each
+  time rather than bookmarking one.
 - **The image doesn't rebuild.** `infra/persistent` and the `:demo` tag in ECR are
   untouched by `undeploy.sh`, which is the entire point of the stack split — without it,
   every cycle would also pay for a Docker build + push of a `rasterio`/GDAL image.
 
-If you change app code between interviews, rebuild and push before your next
+If you change app code between deployments, rebuild and push before your next
 `deploy.sh` (repeat the "Build and push the image once" step above, keeping the same
 `:demo` tag so `env.sh` doesn't need editing).
 
@@ -192,6 +201,30 @@ curl -s -X POST http://$DNS/ask -H "Content-Type: application/json" \
 If `/ask` 500s: `aws logs tail /ecs/eo-rag --follow --profile $PROFILE --region $REGION`
 — usual culprits are a bad `ANTHROPIC_API_KEY` in `env.sh` or Bedrock model access not
 enabled in `$REGION`.
+
+## Sizing and limits
+
+What this stack deliberately is, so nobody has to read the `.tf` files to find out:
+
+| | Value | Why |
+|---|---|---|
+| ECS task | 512 CPU units / 1024 MB, `desired_count = 1` | One task, no autoscaling. `rasterio` needs the memory headroom; `compute_index` is the only heavy path. |
+| RDS | `db.t4g.micro`, 20 GB, single-AZ | The corpus is 65 KB. Storage is for pgvector's index, not volume. |
+| RDS backups | 1 day retention, `skip_final_snapshot = true` | The database is rebuilt by re-ingestion in seconds, so a snapshot is worth less than the time it costs `undeploy.sh`. |
+| ALB | Internet-facing, HTTP only | No custom domain, no ACM certificate — both would outlive the ephemeral stack. |
+| Secrets | `recovery_window_in_days = 0` | So `undeploy.sh` really deletes them and the next `deploy.sh` can reuse the names. |
+| Network | Account's default VPC, public subnets | Avoids a NAT Gateway, the single largest line item a purpose-built VPC would add. RDS is `publicly_accessible = false`. |
+
+Consequences worth knowing before you rely on this:
+
+- **One task means the in-process pieces are per task**: conversation history lives in
+  memory, and the rate limiter keeps its own tally. Scaling `desired_count` above 1 makes
+  the effective rate limit N x the configured value and sends follow-up questions to
+  whichever task answers, which will not have the history.
+- **Everything ephemeral is destroyed and recreated**, so `deploy.sh` always re-runs
+  ingestion. RDS provisioning is the slow part — budget 5-10 minutes end to end.
+- **No TLS.** Traffic to the ALB is plaintext HTTP. Put CloudFront or an ACM certificate
+  in front before sending anything you care about over it.
 
 ## Full teardown (including the persistent stack)
 
