@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import type { StacAsset } from '../api/types'
@@ -42,6 +42,7 @@ function shortType(type: string | null): string {
 export function AssetList({ itemId, anchor, onClose }: Props) {
   const [assets, setAssets] = useState<StacAsset[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const dialog = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Abandoned if the popover closes or the scene changes before the catalog answers,
@@ -72,13 +73,20 @@ export function AssetList({ itemId, anchor, onClose }: Props) {
     // Anchored to a rect measured once, so anything that moves the card underneath it
     // closes the popover rather than leaving it pointing at empty space. Capture phase:
     // the card strip scrolls in its own container, and that scroll does not bubble.
+    // Capture also sees the popover's own list scrolling, which moves nothing it is
+    // anchored to — closing on that made the list impossible to scroll at all.
+    const onScroll = (e: Event) => {
+      if (e.target instanceof Node && dialog.current?.contains(e.target)) return
+      onClose()
+    }
+
     document.addEventListener('keydown', onKey)
-    window.addEventListener('scroll', onClose, true)
+    window.addEventListener('scroll', onScroll, true)
     window.addEventListener('resize', onClose)
 
     return () => {
       document.removeEventListener('keydown', onKey)
-      window.removeEventListener('scroll', onClose, true)
+      window.removeEventListener('scroll', onScroll, true)
       window.removeEventListener('resize', onClose)
     }
   }, [onClose])
@@ -101,6 +109,7 @@ export function AssetList({ itemId, anchor, onClose }: Props) {
       <div className="fixed inset-0 z-40" onClick={onClose} onContextMenu={onClose} />
 
       <div
+        ref={dialog}
         role="dialog"
         aria-label={`Assets of ${itemId}`}
         style={{
@@ -109,7 +118,9 @@ export function AssetList({ itemId, anchor, onClose }: Props) {
           width: WIDTH,
           maxHeight: Math.min(PREFERRED_HEIGHT, below ? spaceBelow : spaceAbove),
         }}
-        className="border-line bg-panel fixed z-50 overflow-y-auto rounded-md border shadow-xl"
+        // overscroll-contain: at the end of the list the wheel would otherwise chain into
+        // the chat pane behind it, and that scroll — rightly — closes the popover.
+        className="border-line bg-panel fixed z-50 overflow-y-auto overscroll-contain rounded-md border shadow-xl"
       >
         <p className="border-line text-ink-faint sticky top-0 border-b bg-panel px-2.5 py-1.5 font-mono text-[10px] tracking-wide uppercase">
           assets · {assets ? `${assets.length}` : '…'}
