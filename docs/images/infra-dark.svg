@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="560" viewBox="0 0 1080 560" role="img" aria-label="EO-RAG AWS deployment architecture">
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M0,1 L9,5 L0,9 z" fill="#6e7681"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M0,1 L9,5 L0,9 z" fill="#4493f8"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M0,1 L9,5 L0,9 z" fill="#3fb950"/></marker>
+</defs>
+<rect x="0" y="0" width="1080" height="560" rx="0" fill="#0d1117" stroke="none" stroke-width="1"/>
+<text x="28" y="38" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" font-weight="700" text-anchor="start" opacity="1.0">EO-RAG — AWS deployment</text>
+<text x="28" y="60" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" text-anchor="start" opacity="1.0">Two Terraform stacks, split on lifetime: one created once, one created and destroyed at will.</text>
+<rect x="28" y="108" width="150" height="56" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<rect x="28" y="108" width="3.5" height="56" rx="2" fill="#4493f8"/>
+<text x="44" y="132" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="600" text-anchor="start" opacity="1.0">Browser</text>
+<text x="44" y="149" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">HTTP, no TLS</text>
+<rect x="222" y="92" width="560" height="330" rx="12" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+<text x="240" y="117" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="700" text-anchor="start" opacity="1.0">Default VPC — public subnets</text>
+<text x="240" y="134" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">no NAT Gateway: the largest line item a private-subnet design would add</text>
+<rect x="246" y="150" width="512" height="50" rx="8" fill="#161b22" stroke="#d29922" stroke-width="1"/>
+<text x="262" y="172" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">Application Load Balancer</text>
+<text x="262" y="188" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">internet-facing · HTTP :80 · DNS name changes every deploy</text>
+<rect x="246" y="214" width="512" height="92" rx="8" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="262" y="236" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">ECS Fargate — eo-rag service</text>
+<text x="262" y="252" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">desired_count = 1 · 512 CPU / 1024 MB · public IP for egress</text>
+<rect x="262" y="262" width="226" height="32" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+<text x="274" y="283" fill="#e6edf3" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">API + built UI + /mcp</text>
+<rect x="500" y="262" width="226" height="32" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+<text x="512" y="283" fill="#e6edf3" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">entrypoint: alembic upgrade</text>
+<rect x="246" y="320" width="512" height="68" rx="8" fill="#161b22" stroke="#4493f8" stroke-width="1"/>
+<text x="262" y="342" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">RDS PostgreSQL 16 + pgvector</text>
+<text x="262" y="358" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">db.t4g.micro · 20 GB · single-AZ · publicly_accessible = false</text>
+<text x="262" y="375" fill="#d29922" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">destroyed every cycle — deploy.sh re-runs ingestion</text>
+<path d="M178,136 L218,136" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M502,202 L502,210" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M502,308 L502,316" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<text x="822" y="112" fill="#8b949e" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="700" text-anchor="start" opacity="1.0">MANAGED / EXTERNAL</text>
+<rect x="822" y="126" width="230" height="52" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<rect x="822" y="126" width="3.5" height="52" rx="2" fill="#d29922"/>
+<text x="838" y="148" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="600" text-anchor="start" opacity="1.0">Secrets Manager</text>
+<text x="838" y="164" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">DB password · API key</text>
+<rect x="822" y="188" width="230" height="52" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<rect x="822" y="188" width="3.5" height="52" rx="2" fill="#3fb950"/>
+<text x="838" y="210" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="600" text-anchor="start" opacity="1.0">Amazon Bedrock</text>
+<text x="838" y="226" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">Titan embeddings</text>
+<rect x="822" y="250" width="230" height="52" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<rect x="822" y="250" width="3.5" height="52" rx="2" fill="#4493f8"/>
+<text x="838" y="272" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="600" text-anchor="start" opacity="1.0">Anthropic API</text>
+<text x="838" y="288" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">Claude</text>
+<rect x="822" y="312" width="230" height="52" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<rect x="822" y="312" width="3.5" height="52" rx="2" fill="#ab7df8"/>
+<text x="838" y="334" fill="#e6edf3" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="600" text-anchor="start" opacity="1.0">Earth Search</text>
+<text x="838" y="350" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">STAC catalog + COGs</text>
+<path d="M786,272 H800" stroke="#6e7681" stroke-width="1.6" fill="none" stroke-dasharray="4 3"/>
+<path d="M800,152 V338" stroke="#6e7681" stroke-width="1.6" fill="none" stroke-dasharray="4 3"/>
+<circle cx="800" cy="272" r="3.2" fill="#6e7681"/>
+<path d="M800,152 L818,152" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="4 3"/>
+<path d="M800,214 L818,214" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="4 3"/>
+<path d="M800,276 L818,276" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="4 3"/>
+<path d="M800,338 L818,338" stroke="#6e7681" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="4 3"/>
+<rect x="28" y="448" width="512" height="84" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<rect x="28" y="448" width="3.5" height="84" rx="2" fill="#3fb950"/>
+<text x="46" y="470" fill="#e6edf3" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">infra/persistent/  —  created once, ever</text>
+<text x="46" y="489" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">S3 state bucket (made by hand) · ECR repository</text>
+<text x="46" y="508" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">Survives every teardown, so no cycle pays for a rasterio/GDAL</text>
+<text x="46" y="523" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">image rebuild.</text>
+<rect x="556" y="448" width="496" height="84" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<rect x="556" y="448" width="3.5" height="84" rx="2" fill="#d29922"/>
+<text x="574" y="470" fill="#e6edf3" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">infra/  —  ephemeral, ./deploy.sh / ./undeploy.sh</text>
+<text x="574" y="489" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">ALB · ECS · RDS · Secrets Manager · IAM</text>
+<text x="574" y="508" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">Destroyed when you are done; billing stops. Redeploy is one</text>
+<text x="574" y="523" fill="#8b949e" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">command and reuses the image already in ECR.</text>
+</svg>

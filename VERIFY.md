@@ -494,7 +494,7 @@ Note that `/items` has to be in the Vite proxy list for the dev server, or it an
 asset list with `index.html` under a **200** and the popover fails as
 `Unexpected token '<'`.
 
-## Step 11 — Guardrails (step 7)
+## Step 11 — Guardrails
 
 The offline suite covers all of this. What it cannot cover is the half that only exists
 against a live model: that the numbers in `MODEL_PRICING` bear any relation to what the
@@ -603,7 +603,8 @@ RATE_LIMIT_ASK_PER_MINUTE=0 RATE_LIMIT_PROXY_PER_MINUTE=3 uv run uvicorn app.mai
 ```
 
 ```bash
-# A body with no `question` at all: invalid, and it must still be the limiter that answers.
+# NOTE: a body with no 'question' at all is invalid, and it must still be the limiter
+# that answers - the refusal happens before the router validates the body.
 curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:8079/ask \
   -H 'Content-Type: application/json' -d '{}'
 
@@ -628,7 +629,7 @@ curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:8079/ask \
 default of `false`. If a varying `X-Forwarded-For` ever gets a `200`, the limiter is
 trusting a value the client chose and is effectively off.
 
-## Step 12 — Tracing (step 8)
+## Step 12 — Tracing
 
 The offline suite asserts on the records a `Turn` produces. What it cannot assert is that
 those records survive the trip through uvicorn's logging configuration — which is the one
@@ -719,7 +720,7 @@ unaffected, and the only sign of trouble to be OTLP export warnings on a backgro
 thread. If a request ever fails because Langfuse did, `_safe()` in `app/obs/tracing.py`
 has been bypassed.
 
-## Step 13 — The eval harness (step 9)
+## Step 13 — The eval harness
 
 This step *is* the live check, so unlike the others there is no separate manual version:
 `scripts/eval.py` is what `VERIFY.md` has been doing by hand since step 1, written down.
@@ -797,7 +798,7 @@ write a failing test is to break the build.
 every run, so a cheap CI gate is `--retrieval-only --compare`: it regresses on chunking
 and embedding changes, which is where most retrieval damage comes from, for nothing.
 
-## Step 14 — The MCP server (step 10)
+## Step 14 — The MCP server
 
 Needs the optional extra: `uv sync --extra dev --extra mcp`.
 
@@ -971,9 +972,14 @@ two need nothing but network.
 
 ---
 
-## Last run
+## Last recorded run
 
-2026-08-07, all steps passing (step 9 after a fix; see the note on it below).
+**2026-08-07, all steps passing** (step 9 after a fix; see the note on it below).
+
+What follows is a record of one real run, on one machine, against the live services on
+that date — kept as evidence these checks were actually executed, and as a rough sense of
+the timings and magnitudes to expect. It is **not** expected output to diff against:
+scene ids, cloud percentages and latencies all move with the catalog and the model.
 
 Step 10, same day, against the live catalog and the live model:
 

@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="620" viewBox="0 0 1080 620" role="img" aria-label="EO-RAG system architecture">
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M0,1 L9,5 L0,9 z" fill="#8c959f"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M0,1 L9,5 L0,9 z" fill="#0969da"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M0,1 L9,5 L0,9 z" fill="#1a7f37"/></marker>
+</defs>
+<rect x="0" y="0" width="1080" height="620" rx="0" fill="#ffffff" stroke="none" stroke-width="1"/>
+<text x="28" y="38" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" font-weight="700" text-anchor="start" opacity="1.0">EO-RAG — system architecture</text>
+<text x="28" y="60" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="400" text-anchor="start" opacity="1.0">One agent, three tools, two front ends.</text>
+<text x="28" y="96" fill="#656d76" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="700" text-anchor="start" opacity="1.0">CLIENTS</text>
+<rect x="28" y="110" width="196" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="28" y="110" width="3.5" height="56" rx="2" fill="#0969da"/>
+<text x="44" y="134" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="600" text-anchor="start" opacity="1.0">Web interface</text>
+<text x="44" y="151" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">React · Vite · MapLibre GL</text>
+<rect x="28" y="178" width="196" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="28" y="178" width="3.5" height="56" rx="2" fill="#8250df"/>
+<text x="44" y="202" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="600" text-anchor="start" opacity="1.0">MCP clients</text>
+<text x="44" y="219" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">Claude Desktop · Claude Code</text>
+<rect x="28" y="246" width="196" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="28" y="246" width="3.5" height="56" rx="2" fill="#656d76"/>
+<text x="44" y="270" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="600" text-anchor="start" opacity="1.0">HTTP callers</text>
+<text x="44" y="287" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">curl · your own service</text>
+<rect x="268" y="96" width="516" height="432" rx="12" fill="#eef2f6" stroke="#d0d7de" stroke-width="1" stroke-dasharray="none"/>
+<text x="286" y="122" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="14" font-weight="700" text-anchor="start" opacity="1.0">FastAPI application</text>
+<text x="286" y="139" fill="#656d76" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">app/main.py — one process, one image</text>
+<rect x="286" y="152" width="480" height="40" rx="8" fill="#f6f8fa" stroke="#9a6700" stroke-width="1"/>
+<text x="300" y="170" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="600" text-anchor="start" opacity="1.0">Rate limiter</text>
+<text x="300" y="185" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">raw ASGI middleware · outermost · per-caller sliding window</text>
+<rect x="286" y="204" width="480" height="46" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="300" y="217" width="36.6" height="21" rx="5" fill="#eef2f6" stroke="#d0d7de" stroke-width="1"/>
+<text x="318.3" y="231.5" fill="#0969da" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="600" text-anchor="middle" opacity="1.0">/ask</text>
+<rect x="344.6" y="217" width="84.9" height="21" rx="5" fill="#eef2f6" stroke="#d0d7de" stroke-width="1"/>
+<text x="387.05" y="231.5" fill="#0969da" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="600" text-anchor="middle" opacity="1.0">/ask/stream</text>
+<rect x="437.5" y="217" width="64.2" height="21" rx="5" fill="#eef2f6" stroke="#d0d7de" stroke-width="1"/>
+<text x="469.6" y="231.5" fill="#0969da" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="600" text-anchor="middle" opacity="1.0">/preview</text>
+<rect x="509.7" y="217" width="50.400000000000006" height="21" rx="5" fill="#eef2f6" stroke="#d0d7de" stroke-width="1"/>
+<text x="534.9" y="231.5" fill="#0969da" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="600" text-anchor="middle" opacity="1.0">/items</text>
+<rect x="568.1" y="217" width="36.6" height="21" rx="5" fill="#eef2f6" stroke="#d0d7de" stroke-width="1"/>
+<text x="586.4" y="231.5" fill="#0969da" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="600" text-anchor="middle" opacity="1.0">/mcp</text>
+<rect x="286" y="264" width="480" height="128" rx="8" fill="#f6f8fa" stroke="#0969da" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="300" y="285" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="700" text-anchor="start" opacity="1.0">LangGraph agent</text>
+<text x="300" y="301" fill="#656d76" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">START → agent → (tool_use?) → tools → agent → … → END</text>
+<rect x="308" y="314" width="168" height="58" rx="8" fill="#eef2f6" stroke="#0969da" stroke-width="1"/>
+<text x="324" y="336" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="600" text-anchor="start" opacity="1.0">agent node</text>
+<text x="324" y="353" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">Claude · streams tokens</text>
+<rect x="568" y="314" width="168" height="58" rx="8" fill="#eef2f6" stroke="#1a7f37" stroke-width="1"/>
+<text x="584" y="336" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="600" text-anchor="start" opacity="1.0">tools node</text>
+<text x="584" y="353" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">runs · catches · returns</text>
+<path d="M478,334 L565,334" stroke="#0969da" stroke-width="1.6" fill="none" marker-end="url(#ab)"/>
+<path d="M566,356 L479,356" stroke="#1a7f37" stroke-width="1.6" fill="none" marker-end="url(#ag)"/>
+<text x="522" y="329" fill="#656d76" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="9" font-weight="400" text-anchor="middle" opacity="1.0">tool_use</text>
+<text x="522" y="371" fill="#656d76" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="9" font-weight="400" text-anchor="middle" opacity="1.0">tool_result</text>
+<text x="286" y="407" fill="#656d76" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="700" text-anchor="start" opacity="1.0">TOOLS</text>
+<rect x="286" y="416" width="154.66666666666666" height="52" rx="8" fill="#f6f8fa" stroke="#1a7f37" stroke-width="1"/>
+<text x="298" y="438" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="11.5" font-weight="600" text-anchor="start" opacity="1.0">rag_lookup</text>
+<text x="298" y="455" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">pgvector top-k</text>
+<rect x="448.66666666666663" y="416" width="154.66666666666666" height="52" rx="8" fill="#f6f8fa" stroke="#1a7f37" stroke-width="1"/>
+<text x="460.66666666666663" y="438" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="11.5" font-weight="600" text-anchor="start" opacity="1.0">stac_search</text>
+<text x="460.66666666666663" y="455" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">catalog query</text>
+<rect x="611.3333333333333" y="416" width="154.66666666666666" height="52" rx="8" fill="#f6f8fa" stroke="#1a7f37" stroke-width="1"/>
+<text x="623.3333333333333" y="438" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="11.5" font-weight="600" text-anchor="start" opacity="1.0">compute_index</text>
+<text x="623.3333333333333" y="455" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">NDVI · NDWI</text>
+<rect x="286" y="480" width="480" height="38" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<text x="300" y="496" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11.5" font-weight="600" text-anchor="start" opacity="1.0">Guardrails</text>
+<text x="300" y="511" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10" font-weight="400" text-anchor="start" opacity="1.0">step cap per turn · cost + turn budget per conversation · 429, never 500</text>
+<text x="828" y="96" fill="#656d76" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10.5" font-weight="700" text-anchor="start" opacity="1.0">EXTERNAL SERVICES</text>
+<rect x="828" y="110" width="224" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="828" y="110" width="3.5" height="56" rx="2" fill="#0969da"/>
+<text x="844" y="134" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">Anthropic Claude</text>
+<text x="844" y="151" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">messages.stream()</text>
+<rect x="828" y="178" width="224" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="828" y="178" width="3.5" height="56" rx="2" fill="#9a6700"/>
+<text x="844" y="202" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">Amazon Bedrock</text>
+<text x="844" y="219" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">Titan embeddings v2</text>
+<rect x="828" y="246" width="224" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="828" y="246" width="3.5" height="56" rx="2" fill="#1a7f37"/>
+<text x="844" y="270" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">Postgres + pgvector</text>
+<text x="844" y="287" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">doc_chunks · cosine</text>
+<rect x="828" y="314" width="224" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="828" y="314" width="3.5" height="56" rx="2" fill="#8250df"/>
+<text x="844" y="338" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">STAC API</text>
+<text x="844" y="355" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">Earth Search v1</text>
+<rect x="828" y="382" width="224" height="56" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="828" y="382" width="3.5" height="56" rx="2" fill="#656d76"/>
+<text x="844" y="406" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">COGs on S3</text>
+<text x="844" y="423" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">windowed /vsicurl reads</text>
+<path d="M224,138 L264,138" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M224,206 L264,206" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M224,274 L264,274" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M806,138 V410" stroke="#8c959f" stroke-width="1.6" fill="none"/>
+<path d="M788,334 H806" stroke="#8c959f" stroke-width="1.6" fill="none"/>
+<path d="M788,442 H806 V410" stroke="#8c959f" stroke-width="1.6" fill="none"/>
+<path d="M806,138 L824,138" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M806,206 L824,206" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M806,274 L824,274" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M806,342 L824,342" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<path d="M806,410 L824,410" stroke="#8c959f" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+<circle cx="806" cy="334" r="3.2" fill="#8c959f"/>
+<circle cx="806" cy="442" r="3.2" fill="#8c959f"/>
+<rect x="28" y="552" width="1024" height="46" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+<rect x="28" y="552" width="3.5" height="46" rx="2" fill="#8250df"/>
+<text x="46" y="572" fill="#1f2328" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" text-anchor="start" opacity="1.0">Observability</text>
+<text x="46" y="588" fill="#656d76" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="400" text-anchor="start" opacity="1.0">every turn → one JSON line per event on the eo_rag.trace logger  ·  optional Langfuse exporter  ·  tools, tokens, latency, retrieval distances</text>
+</svg>

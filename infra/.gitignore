@@ -2,3 +2,7 @@
 *.tfstate
 *.tfstate.*
 env.sh
+
+# Variable files: the common way a public Terraform directory leaks a secret.
+*.tfvars
+*.auto.tfvars

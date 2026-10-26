@@ -1,5 +1,8 @@
 {
   "name": "eo-rag-frontend",
+  "version": "0.1.0",
+  "description": "Chat and map interface for EO-RAG: streaming answers, STAC scene footprints and quicklooks on MapLibre GL.",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

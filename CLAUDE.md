@@ -92,7 +92,8 @@ A tool-calling agent over EO/STAC technical documentation and live STAC catalogs
 - **MCP** (`app/mcp/`): the same three tools and the corpus, exposed over the Model
   Context Protocol — stdio for desktop clients, streamable HTTP mounted at `/mcp`.
 
-`ROADMAP.md` steps 0-10 are complete; what is left is the Cross-cutting list at its end.
+`docs/decisions.md` records why each part is built the way it is; `docs/architecture.md`
+is the human-facing overview of the same ground.
 
 ### The graph is two nodes and a conditional edge
 
